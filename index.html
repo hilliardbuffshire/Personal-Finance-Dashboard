@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
   <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-  <title>Hilliard Buffshire · Personal Finance Dashboard</title>
+  <title>Hilliard Buffshire Â· Personal Finance Dashboard</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.8.1/prop-types.min.js" crossorigin></script>
@@ -33,17 +33,19 @@
 </head>
 <body>
 <div id="loading">
-  <div class="hb-logo">🏦</div>
+  <div class="hb-logo">ð¦</div>
   <div style="color:#c9a84c;font-size:20px;font-weight:800;letter-spacing:2px">HILLIARD BUFFSHIRE</div>
   <div style="color:#67e8f9;font-size:10px;letter-spacing:4px;font-weight:800;margin-top:4px">PERSONAL FINANCE DASHBOARD</div>
-  <div style="color:rgba(255,255,255,0.85);font-size:12px;letter-spacing:1px;margin-top:3px">힐리아드 버프셔 재무 관리 스테이션</div>
-  <div style="margin-top:10px;color:#475569;font-size:12px">Loading…</div>
+  <div style="color:rgba(255,255,255,0.85);font-size:12px;letter-spacing:1px;margin-top:3px">íë¦¬ìë ë²íì ì¬ë¬´ ê´ë¦¬ ì¤íì´ì</div>
+  <div style="margin-top:10px;color:#475569;font-size:12px">Loadingâ¦</div>
 </div>
 <div id="root"></div>
 <script>
+// v2.1 fix
+(function(){try{var ver=localStorage.getItem('hb_schema_ver');if(!ver||parseInt(ver)<2){for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&/^hb_.+_balance$/.test(k)){var v=parseFloat(localStorage.getItem(k));if(v===5000)localStorage.setItem(k,'0');}}localStorage.setItem('hb_schema_ver','2');}}catch(e){}})();
 window.onerror=function(m){
   document.getElementById('loading').style.display='none';
-  document.getElementById('root').innerHTML='<div style="padding:24px;color:#dc2626;background:#fee2e2;margin:24px;border-radius:12px;font-size:14px">❌ 오류: '+m+'<br><br>인터넷 연결을 확인하고 새로고침 해주세요.</div>';
+  document.getElementById('root').innerHTML='<div style="padding:24px;color:#dc2626;background:#fee2e2;margin:24px;border-radius:12px;font-size:14px">â ì¤ë¥: '+m+'<br><br>ì¸í°ë· ì°ê²°ì íì¸íê³  ìë¡ê³ ì¹¨ í´ì£¼ì¸ì.</div>';
 };
 </script>
 <script type="text/babel">
@@ -52,9 +54,9 @@ const { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
         LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
         Legend, ResponsiveContainer } = Recharts;
 
-/* ══════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââ
    1. STORAGE (localStorage + in-memory fallback)
-══════════════════════════════════════════ */
+ââââââââââââââââââââââââââââââââââââââââââ */
 let _mem = {};
 const LS = {
   get:(k,fb)=>{ try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb;}catch{return _mem[k]!==undefined?_mem[k]:fb;} },
@@ -62,16 +64,16 @@ const LS = {
   del:(k)=>{ try{localStorage.removeItem(k);}catch{delete _mem[k];} },
 };
 
-/* ══════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââ
    2. AUTH
-══════════════════════════════════════════ */
+ââââââââââââââââââââââââââââââââââââââââââ */
 const Auth={
   users:()=>LS.get('hb_users',[]),
   register:(u,p)=>{
     const un=u.trim().toLowerCase();
-    if(!un||un.length<2)return{ok:false,msg:'아이디는 2자 이상이어야 합니다.'};
-    if(!p||p.length<4)return{ok:false,msg:'비밀번호는 4자 이상이어야 합니다.'};
-    if(localStorage.getItem(`hb_pw_${un}`)||_mem[`hb_pw_${un}`])return{ok:false,msg:'이미 존재하는 아이디입니다.'};
+    if(!un||un.length<2)return{ok:false,msg:'ìì´ëë 2ì ì´ìì´ì´ì¼ í©ëë¤.'};
+    if(!p||p.length<4)return{ok:false,msg:'ë¹ë°ë²í¸ë 4ì ì´ìì´ì´ì¼ í©ëë¤.'};
+    if(localStorage.getItem(`hb_pw_${un}`)||_mem[`hb_pw_${un}`])return{ok:false,msg:'ì´ë¯¸ ì¡´ì¬íë ìì´ëìëë¤.'};
     LS.set(`hb_pw_${un}`,p);
     const us=Auth.users(); if(!us.includes(un))LS.set('hb_users',[...us,un]);
     return{ok:true,user:un};
@@ -79,8 +81,8 @@ const Auth={
   login:(u,p)=>{
     const un=u.trim().toLowerCase();
     const stored=LS.get(`hb_pw_${un}`,null);
-    if(!stored)return{ok:false,msg:'존재하지 않는 아이디입니다.'};
-    if(stored!==p)return{ok:false,msg:'비밀번호가 틀렸습니다.'};
+    if(!stored)return{ok:false,msg:'ì¡´ì¬íì§ ìë ìì´ëìëë¤.'};
+    if(stored!==p)return{ok:false,msg:'ë¹ë°ë²í¸ê° íë ¸ìµëë¤.'};
     return{ok:true,user:un};
   },
   session:()=>LS.get('hb_session',null),
@@ -88,26 +90,26 @@ const Auth={
   clear:()=>LS.del('hb_session'),
 };
 
-/* ══════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââ
    3. CONSTANTS & DEFAULTS
-══════════════════════════════════════════ */
-const DEF_INC=[{id:1,name:'월급 (Salary)',amount:4500,type:'monthly'}];
-const DEF_EXP=[{id:1,name:'렌트 (Rent)',amount:1500,category:'주거'},{id:2,name:'식비 (Food)',amount:500,category:'식비'},{id:3,name:'교통비',amount:150,category:'교통'}];
-const DEF_DBT=[{id:1,name:'신용카드 (Credit Card)',totalAmount:5000,monthlyPayment:300,interestRate:19.99}];
-const DEF_INV=[{id:1,name:'주식 포트폴리오 (Stocks)',balance:0,monthlyContribution:200,type:'stock',expectedReturn:7}];
+ââââââââââââââââââââââââââââââââââââââââââ */
+const DEF_INC=[];
+const DEF_EXP=[];
+const DEF_DBT=[];
+const DEF_INV=[{id:1,name:'ì£¼ì í¬í¸í´ë¦¬ì¤ (Stocks)',balance:0,monthlyContribution:200,type:'stock',expectedReturn:7}];
 const DEF_TXN=[];
 
-const CAT_COLORS={주거:'#3b82f6',식비:'#f59e0b',교통:'#10b981',의료:'#ef4444',교육:'#8b5cf6',쇼핑:'#f97316',여가:'#06b6d4',수입:'#22c55e',기타:'#6b7280'};
+const CAT_COLORS={ì£¼ê±°:'#3b82f6',ìë¹:'#f59e0b',êµíµ:'#10b981',ìë£:'#ef4444',êµì¡:'#8b5cf6',ì¼í:'#f97316',ì¬ê°:'#06b6d4',ìì:'#22c55e',ê¸°í:'#6b7280'};
 const INV_COLORS={stock:'#3b82f6',crypto:'#f59e0b',realEstate:'#10b981',savings:'#8b5cf6',other:'#6b7280'};
-const INV_LABELS={stock:'주식 (Stock)',crypto:'코인 (Crypto)',realEstate:'부동산',savings:'예적금',other:'기타'};
+const INV_LABELS={stock:'ì£¼ì (Stock)',crypto:'ì½ì¸ (Crypto)',realEstate:'ë¶ëì°',savings:'ìì ê¸',other:'ê¸°í'};
 const PIE_PAL=['#3b82f6','#f59e0b','#10b981','#ef4444','#8b5cf6','#f97316','#06b6d4','#ec4899','#6b7280'];
-const CAT_LIST=['주거','식비','교통','의료','교육','쇼핑','여가','기타'];
+const CAT_LIST=['ì£¼ê±°','ìë¹','êµíµ','ìë£','êµì¡','ì¼í','ì¬ê°','ê¸°í'];
 
 let _uid=500; const gid=()=>++_uid;
 
-/* ══════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââ
    4. FORMATTERS
-══════════════════════════════════════════ */
+ââââââââââââââââââââââââââââââââââââââââââ */
 const fmt=v=>{if(v==null)return'$0';const a=Math.abs(v),s=v<0?'-':'';return a>=1e6?`${s}$${(a/1e6).toFixed(2)}M`:a>=1e3?`${s}$${(a/1e3).toFixed(1)}K`:`${s}$${a.toFixed(0)}`;};
 const $$=v=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(v??0);
 const monthKey=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
@@ -115,9 +117,9 @@ const monthLabel=k=>{const[y,m]=k.split('-');const mn=['Jan','Feb','Mar','Apr','
 const prevMonth=k=>{const[y,m]=k.split('-').map(Number);return m===1?`${y-1}-12`:`${y}-${String(m-1).padStart(2,'0')}`;};
 const nextMonth=k=>{const[y,m]=k.split('-').map(Number);return m===12?`${y+1}-01`:`${y}-${String(m+1).padStart(2,'0')}`;};
 
-/* ══════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââ
    5. SVG ICONS
-══════════════════════════════════════════ */
+ââââââââââââââââââââââââââââââââââââââââââ */
 const I=(p)=><svg width={p.s||14} height={p.s||14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{p.children}</svg>;
 const IcoPlus =({s=12})=><I s={s}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></I>;
 const IcoTrash=({s=13})=><I s={s}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></I>;
@@ -130,15 +132,15 @@ const IcoOut  =({s=14})=><I s={s}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2
 const IcoDn   =({s=15})=><I s={s}><polyline points="6 9 12 15 18 9"/></I>;
 const IcoUp   =({s=15})=><I s={s}><polyline points="18 15 12 9 6 15"/></I>;
 
-/* ══════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââ
    6. SHARED UI COMPONENTS
-══════════════════════════════════════════ */
+ââââââââââââââââââââââââââââââââââââââââââ */
 function Tip({active,payload,label}){
   if(!active||!payload?.length)return null;
   return(<div style={{background:'white',border:'1px solid #e2e8f0',borderRadius:12,padding:'10px 14px',boxShadow:'0 4px 20px rgba(0,0,0,0.1)',fontSize:12}}>
     <p style={{fontWeight:700,marginBottom:6,color:'#374151'}}>{label}</p>
     {payload.map((p,i)=><div key={i} style={{display:'flex',alignItems:'center',gap:6,marginBottom:2}}>
-      <span style={{color:p.color}}>●</span><span style={{color:'#6b7280'}}>{p.name}:</span>
+      <span style={{color:p.color}}>â</span><span style={{color:'#6b7280'}}>{p.name}:</span>
       <span style={{fontWeight:700,color:p.color}}>{$$(p.value)}</span>
     </div>)}
   </div>);
@@ -148,7 +150,7 @@ function PieTip({active,payload}){
   if(!active||!payload?.length)return null;
   const p=payload[0];
   return(<div style={{background:'white',border:'1px solid #e2e8f0',borderRadius:10,padding:'8px 12px',fontSize:12,boxShadow:'0 4px 20px rgba(0,0,0,0.1)'}}>
-    <span style={{color:p.payload.fill}}>● </span><strong>{p.name}</strong><br/>
+    <span style={{color:p.payload.fill}}>â </span><strong>{p.name}</strong><br/>
     <span style={{color:'#374151'}}>{$$(p.value)}</span>
   </div>);
 }
@@ -174,8 +176,8 @@ function EditRow({item,fields,onSave,onDelete,bg='bg-gray-50'}){
         </div>)}
       </div>
       <div style={{display:'flex',gap:6,marginTop:8}}>
-        <button onClick={save} style={{display:'flex',alignItems:'center',gap:4,padding:'5px 12px',background:'#22c55e',color:'white',border:'none',borderRadius:8,fontSize:12,fontWeight:600}}><IcoCheck/>저장</button>
-        <button onClick={cancel} style={{padding:'5px 10px',background:'#e5e7eb',border:'none',borderRadius:8,fontSize:12}}>취소</button>
+        <button onClick={save} style={{display:'flex',alignItems:'center',gap:4,padding:'5px 12px',background:'#22c55e',color:'white',border:'none',borderRadius:8,fontSize:12,fontWeight:600}}><IcoCheck/>ì ì¥</button>
+        <button onClick={cancel} style={{padding:'5px 10px',background:'#e5e7eb',border:'none',borderRadius:8,fontSize:12}}>ì·¨ì</button>
       </div>
     </div>
   );
@@ -185,14 +187,14 @@ function EditRow({item,fields,onSave,onDelete,bg='bg-gray-50'}){
       <div style={{flex:1,minWidth:0}}>
         <span style={{fontSize:13,fontWeight:600,color:'#1f2937'}}>{item.name}</span>
         {item.category&&<span style={{marginLeft:6,fontSize:11,background:'rgba(255,255,255,0.7)',padding:'2px 7px',borderRadius:20,color:'#6b7280'}}>{item.category}</span>}
-        {item.type&&item.type!=='monthly'&&item.type!=='stock'&&item.type!=='crypto'&&item.type!=='realEstate'&&item.type!=='savings'&&item.type!=='other'&&<span style={{marginLeft:6,fontSize:11,background:'#fef3c7',padding:'2px 7px',borderRadius:20,color:'#92400e'}}>1회성</span>}
+        {item.type&&item.type!=='monthly'&&item.type!=='stock'&&item.type!=='crypto'&&item.type!=='realEstate'&&item.type!=='savings'&&item.type!=='other'&&<span style={{marginLeft:6,fontSize:11,background:'#fef3c7',padding:'2px 7px',borderRadius:20,color:'#92400e'}}>1íì±</span>}
         {item.interestRate!=null&&<span style={{marginLeft:6,fontSize:11,color:'#ef4444',fontWeight:600}}>{item.interestRate}%</span>}
         {item.expectedReturn!=null&&<span style={{marginLeft:6,fontSize:11,color:'#3b82f6',fontWeight:600}}>+{item.expectedReturn}%/yr</span>}
       </div>
       <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0,marginLeft:6}}>
-        {item.totalAmount!=null&&<span style={{fontSize:11,color:'#9ca3af'}}>잔액 {$$(item.totalAmount)}</span>}
+        {item.totalAmount!=null&&<span style={{fontSize:11,color:'#9ca3af'}}>ìì¡ {$$(item.totalAmount)}</span>}
         {item.balance!=null&&<span style={{fontSize:12,fontWeight:700,color:'#1f2937'}}>{$$(item.balance)}</span>}
-        {item.balance==null&&<span style={{fontSize:12,fontWeight:700,color:'#1f2937'}}>{$$(amt)}/월</span>}
+        {item.balance==null&&<span style={{fontSize:12,fontWeight:700,color:'#1f2937'}}>{$$(amt)}/ì</span>}
         <button onClick={()=>setEd(true)} style={{padding:4,color:'#60a5fa',background:'none',border:'none',borderRadius:6,display:'flex'}}><IcoEdit/></button>
         <button onClick={()=>onDelete(item.id)} style={{padding:4,color:'#f87171',background:'none',border:'none',borderRadius:6,display:'flex'}}><IcoTrash/></button>
       </div>
@@ -225,16 +227,16 @@ function AddForm({fields,onAdd,label}){
         </div>)}
       </div>
       <div style={{display:'flex',gap:6,marginTop:8}}>
-        <button onClick={doAdd} style={{display:'flex',alignItems:'center',gap:4,padding:'5px 12px',background:'#3b82f6',color:'white',border:'none',borderRadius:8,fontSize:12,fontWeight:600}}><IcoPlus/>추가</button>
-        <button onClick={()=>setOpen(false)} style={{padding:'5px 10px',background:'#e5e7eb',border:'none',borderRadius:8,fontSize:12}}>취소</button>
+        <button onClick={doAdd} style={{display:'flex',alignItems:'center',gap:4,padding:'5px 12px',background:'#3b82f6',color:'white',border:'none',borderRadius:8,fontSize:12,fontWeight:600}}><IcoPlus/>ì¶ê°</button>
+        <button onClick={()=>setOpen(false)} style={{padding:'5px 10px',background:'#e5e7eb',border:'none',borderRadius:8,fontSize:12}}>ì·¨ì</button>
       </div>
     </div>
   );
 }
 
-/* ══════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââ
    7. AUTH SCREEN
-══════════════════════════════════════════ */
+ââââââââââââââââââââââââââââââââââââââââââ */
 function AuthScreen({onLogin}){
   const [tab,setTab]=useState('login');
   const [un,setUn]=useState('');
@@ -255,15 +257,15 @@ function AuthScreen({onLogin}){
       <div style={{width:'100%',maxWidth:380}}>
         {/* Brand */}
         <div style={{textAlign:'center',marginBottom:28}}>
-          <div style={{fontSize:40,marginBottom:8}}>🏦</div>
+          <div style={{fontSize:40,marginBottom:8}}>ð¦</div>
           <div style={{color:'#c9a84c',fontSize:22,fontWeight:900,letterSpacing:2,marginBottom:2}}>HILLIARD BUFFSHIRE</div>
           <div style={{color:'#67e8f9',fontSize:9,letterSpacing:3,fontWeight:800,marginBottom:4}}>PERSONAL FINANCE DASHBOARD</div>
-          <div style={{color:'#6d28d9',fontSize:11,letterSpacing:1}}>힐리아드 버프셔 재무 관리 스테이션</div>
+          <div style={{color:'#6d28d9',fontSize:11,letterSpacing:1}}>íë¦¬ìë ë²íì ì¬ë¬´ ê´ë¦¬ ì¤íì´ì</div>
         </div>
         <div style={{background:'white',borderRadius:20,padding:28,boxShadow:'0 25px 60px rgba(0,0,0,0.4)'}}>
           {/* Tabs */}
           <div style={{display:'flex',background:'#f8fafc',borderRadius:10,padding:3,marginBottom:20}}>
-            {[['login','🔑 로그인'],['register','✨ 새 계정']].map(([k,l])=>(
+            {[['login','ð ë¡ê·¸ì¸'],['register','â¨ ì ê³ì ']].map(([k,l])=>(
               <button key={k} onClick={()=>{setTab(k);setErr('');}}
                 style={{flex:1,padding:'8px 0',borderRadius:8,border:'none',fontSize:13,fontWeight:700,
                   background:tab===k?'white':'transparent',color:tab===k?'#4f46e5':'#94a3b8',
@@ -274,56 +276,56 @@ function AuthScreen({onLogin}){
           </div>
           {/* ID field */}
           <div style={{marginBottom:12}}>
-            <label style={{fontSize:11,fontWeight:700,color:'#374151',display:'block',marginBottom:5,letterSpacing:1}}>아이디</label>
+            <label style={{fontSize:11,fontWeight:700,color:'#374151',display:'block',marginBottom:5,letterSpacing:1}}>ìì´ë</label>
             {tab==='login'&&users.length>0
               ?<select value={un} onChange={e=>{setUn(e.target.value);setErr('');}} style={{width:'100%',padding:'10px 12px',border:'2px solid #e5e7eb',borderRadius:10,fontSize:14,background:'white'}}>
-                 <option value="">— 선택 —</option>
+                 <option value="">â ì í â</option>
                  {users.map(u=><option key={u} value={u}>{u.charAt(0).toUpperCase()+u.slice(1)}</option>)}
                </select>
-              :<input type="text" placeholder="영문+숫자 (2자 이상)" value={un} onChange={e=>{setUn(e.target.value);setErr('');}} onKeyDown={e=>e.key==='Enter'&&submit()} style={{width:'100%',padding:'10px 12px',border:'2px solid #e5e7eb',borderRadius:10,fontSize:14}}/>
+              :<input type="text" placeholder="ìë¬¸+ì«ì (2ì ì´ì)" value={un} onChange={e=>{setUn(e.target.value);setErr('');}} onKeyDown={e=>e.key==='Enter'&&submit()} style={{width:'100%',padding:'10px 12px',border:'2px solid #e5e7eb',borderRadius:10,fontSize:14}}/>
             }
           </div>
           {/* PW field */}
           <div style={{marginBottom:16,position:'relative'}}>
-            <label style={{fontSize:11,fontWeight:700,color:'#374151',display:'block',marginBottom:5,letterSpacing:1}}>비밀번호</label>
-            <input type={showPw?'text':'password'} placeholder={tab==='register'?'4자 이상':'비밀번호'} value={pw}
+            <label style={{fontSize:11,fontWeight:700,color:'#374151',display:'block',marginBottom:5,letterSpacing:1}}>ë¹ë°ë²í¸</label>
+            <input type={showPw?'text':'password'} placeholder={tab==='register'?'4ì ì´ì':'ë¹ë°ë²í¸'} value={pw}
               onChange={e=>{setPw(e.target.value);setErr('');}} onKeyDown={e=>e.key==='Enter'&&submit()}
               style={{width:'100%',padding:'10px 44px 10px 12px',border:'2px solid #e5e7eb',borderRadius:10,fontSize:14}}/>
-            <button onClick={()=>setShowPw(p=>!p)} style={{position:'absolute',right:10,bottom:8,background:'none',border:'none',color:'#9ca3af',fontSize:11,padding:'2px 4px'}}>{showPw?'숨김':'보기'}</button>
+            <button onClick={()=>setShowPw(p=>!p)} style={{position:'absolute',right:10,bottom:8,background:'none',border:'none',color:'#9ca3af',fontSize:11,padding:'2px 4px'}}>{showPw?'ì¨ê¹':'ë³´ê¸°'}</button>
           </div>
-          {err&&<div style={{marginBottom:12,padding:'8px 12px',background:'#fee2e2',borderRadius:8,fontSize:13,color:'#dc2626',fontWeight:600}}>⚠️ {err}</div>}
+          {err&&<div style={{marginBottom:12,padding:'8px 12px',background:'#fee2e2',borderRadius:8,fontSize:13,color:'#dc2626',fontWeight:600}}>â ï¸ {err}</div>}
           <button onClick={submit} style={{width:'100%',padding:'12px 0',background:'linear-gradient(135deg,#667eea,#c9a84c)',color:'white',border:'none',borderRadius:12,fontSize:15,fontWeight:800,letterSpacing:1,boxShadow:'0 4px 15px rgba(201,168,76,0.3)'}}>
-            {tab==='login'?'로그인 →':'계정 만들기 →'}
+            {tab==='login'?'ë¡ê·¸ì¸ â':'ê³ì  ë§ë¤ê¸° â'}
           </button>
-          {tab==='register'&&<p style={{textAlign:'center',fontSize:11,color:'#9ca3af',marginTop:12}}>✅ 데이터는 이 브라우저에 안전하게 저장됩니다</p>}
-          {tab==='login'&&users.length===0&&<p style={{textAlign:'center',fontSize:11,color:'#9ca3af',marginTop:12}}>아직 계정이 없습니다. '새 계정'에서 가입하세요.</p>}
+          {tab==='register'&&<p style={{textAlign:'center',fontSize:11,color:'#9ca3af',marginTop:12}}>â ë°ì´í°ë ì´ ë¸ë¼ì°ì ì ìì íê² ì ì¥ë©ëë¤</p>}
+          {tab==='login'&&users.length===0&&<p style={{textAlign:'center',fontSize:11,color:'#9ca3af',marginTop:12}}>ìì§ ê³ì ì´ ììµëë¤. 'ì ê³ì 'ìì ê°ìíì¸ì.</p>}
         </div>
       </div>
     </div>
   );
 }
 
-/* ══════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââ
    8. OVERVIEW TAB
-══════════════════════════════════════════ */
+ââââââââââââââââââââââââââââââââââââââââââ */
 function OverviewTab({incomes,setInc,expenses,setExp,debts,setDbt,totalInc,totalExp,totalDPay,netFlow,transactions}){
   const [ap,setAp]=useState('income');
   const upd=s=>(id,v)=>s(p=>p.map(x=>x.id===id?{...x,...v}:x));
   const del=s=>(id)=>s(p=>p.filter(x=>x.id!==id));
   const add=s=>item=>s(p=>[...p,item]);
 
-  const FI=[{key:'name',label:'수입명',ph:'예: 월급'},{key:'amount',label:'월 금액 ($)',type:'number',def:0},{key:'type',label:'유형',type:'select',opts:['monthly','annual'],optLabels:{monthly:'매월',annual:'연1회'},def:'monthly'}];
-  const FE=[{key:'name',label:'지출명',ph:'예: 렌트'},{key:'amount',label:'월 금액 ($)',type:'number',def:0},{key:'category',label:'카테고리',type:'select',opts:CAT_LIST,def:'기타'}];
-  const FD=[{key:'name',label:'부채명',ph:'예: 학자금'},{key:'totalAmount',label:'잔여 부채 ($)',type:'number',def:0},{key:'monthlyPayment',label:'월 납부 ($)',type:'number',def:0},{key:'interestRate',label:'연이율 (%)',type:'number',def:0}];
+  const FI=[{key:'name',label:'ììëª',ph:'ì: ìê¸'},{key:'amount',label:'ì ê¸ì¡ ($)',type:'number',def:0},{key:'type',label:'ì í',type:'select',opts:['monthly','annual'],optLabels:{monthly:'ë§¤ì',annual:'ì°1í'},def:'monthly'}];
+  const FE=[{key:'name',label:'ì§ì¶ëª',ph:'ì: ë í¸'},{key:'amount',label:'ì ê¸ì¡ ($)',type:'number',def:0},{key:'category',label:'ì¹´íê³ ë¦¬',type:'select',opts:CAT_LIST,def:'ê¸°í'}];
+  const FD=[{key:'name',label:'ë¶ì±ëª',ph:'ì: íìê¸'},{key:'totalAmount',label:'ìì¬ ë¶ì± ($)',type:'number',def:0},{key:'monthlyPayment',label:'ì ë©ë¶ ($)',type:'number',def:0},{key:'interestRate',label:'ì°ì´ì¨ (%)',type:'number',def:0}];
 
-  // 카테고리별 지출 파이차트 데이터
+  // ì¹´íê³ ë¦¬ë³ ì§ì¶ íì´ì°¨í¸ ë°ì´í°
   const expByCat=useMemo(()=>{
     const m={};
     expenses.forEach(e=>{m[e.category]=(m[e.category]||0)+e.amount;});
     return Object.entries(m).map(([name,value],i)=>({name,value,fill:CAT_COLORS[name]||PIE_PAL[i%PIE_PAL.length]}));
   },[expenses]);
 
-  // 이번 달 실거래 카테고리 파이 (트랜잭션 있으면 사용)
+  // ì´ë² ë¬ ì¤ê±°ë ì¹´íê³ ë¦¬ íì´ (í¸ëì­ì ìì¼ë©´ ì¬ì©)
   const curMth=monthKey();
   const mthExp=useMemo(()=>{
     const m={};
@@ -333,7 +335,7 @@ function OverviewTab({incomes,setInc,expenses,setExp,debts,setDbt,totalInc,total
   },[transactions,curMth]);
 
   const pieData=mthExp.length>0?mthExp:expByCat;
-  const pieTitle=mthExp.length>0?'이번 달 실지출 분석':'월 고정지출 구성';
+  const pieTitle=mthExp.length>0?'ì´ë² ë¬ ì¤ì§ì¶ ë¶ì':'ì ê³ ì ì§ì¶ êµ¬ì±';
 
   const expR=totalInc>0?Math.min(100,(totalExp/totalInc)*100):0;
   const dbtR=totalInc>0?Math.min(100,(totalDPay/totalInc)*100):0;
@@ -341,10 +343,10 @@ function OverviewTab({incomes,setInc,expenses,setExp,debts,setDbt,totalInc,total
 
   return(
     <div style={{display:'grid',gridTemplateColumns:'340px 1fr',gap:16}} className="desktop-grid">
-      {/* 왼쪽 패널 */}
+      {/* ì¼ìª½ í¨ë */}
       <div>
         <div style={{display:'flex',background:'white',borderRadius:12,border:'1px solid #e2e8f0',marginBottom:10,overflow:'hidden',boxShadow:'0 1px 3px rgba(0,0,0,0.05)'}}>
-          {[['income','💚 수입'],['expense','❤️ 지출'],['debt','💜 부채']].map(([k,l])=>(
+          {[['income','ð ìì'],['expense','â¤ï¸ ì§ì¶'],['debt','ð ë¶ì±']].map(([k,l])=>(
             <button key={k} onClick={()=>setAp(k)} style={{flex:1,padding:'10px 0',border:'none',fontSize:12,fontWeight:700,background:ap===k?'#4f46e5':'transparent',color:ap===k?'white':'#6b7280',transition:'all .2s'}}>
               {l}
             </button>
@@ -353,33 +355,33 @@ function OverviewTab({incomes,setInc,expenses,setExp,debts,setDbt,totalInc,total
         <div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)',marginBottom:10}}>
           {ap==='income'&&<>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
-              <span style={{fontWeight:700,fontSize:13,color:'#1f2937'}}>수입 항목</span>
-              <span style={{color:'#22c55e',fontWeight:800,fontSize:13}}>{$$(totalInc)}/월</span>
+              <span style={{fontWeight:700,fontSize:13,color:'#1f2937'}}>ìì í­ëª©</span>
+              <span style={{color:'#22c55e',fontWeight:800,fontSize:13}}>{$$(totalInc)}/ì</span>
             </div>
             {incomes.map(i=><EditRow key={i.id} item={i} fields={FI} onSave={upd(setInc)} onDelete={del(setInc)} bg="bg-green-50"/>)}
-            <AddForm fields={FI} onAdd={add(setInc)} label="수입 추가"/>
+            <AddForm fields={FI} onAdd={add(setInc)} label="ìì ì¶ê°"/>
           </>}
           {ap==='expense'&&<>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
-              <span style={{fontWeight:700,fontSize:13,color:'#1f2937'}}>고정 지출</span>
-              <span style={{color:'#ef4444',fontWeight:800,fontSize:13}}>{$$(totalExp)}/월</span>
+              <span style={{fontWeight:700,fontSize:13,color:'#1f2937'}}>ê³ ì  ì§ì¶</span>
+              <span style={{color:'#ef4444',fontWeight:800,fontSize:13}}>{$$(totalExp)}/ì</span>
             </div>
             {expenses.map(e=><EditRow key={e.id} item={e} fields={FE} onSave={upd(setExp)} onDelete={del(setExp)} bg="bg-red-50"/>)}
-            <AddForm fields={FE} onAdd={add(setExp)} label="지출 추가"/>
+            <AddForm fields={FE} onAdd={add(setExp)} label="ì§ì¶ ì¶ê°"/>
           </>}
           {ap==='debt'&&<>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
-              <span style={{fontWeight:700,fontSize:13,color:'#1f2937'}}>부채</span>
-              <span style={{color:'#8b5cf6',fontWeight:800,fontSize:13}}>월 {$$(totalDPay)}</span>
+              <span style={{fontWeight:700,fontSize:13,color:'#1f2937'}}>ë¶ì±</span>
+              <span style={{color:'#8b5cf6',fontWeight:800,fontSize:13}}>ì {$$(totalDPay)}</span>
             </div>
             {debts.map(d=><EditRow key={d.id} item={d} fields={FD} onSave={upd(setDbt)} onDelete={del(setDbt)} bg="bg-purple-50"/>)}
-            <AddForm fields={FD} onAdd={add(setDbt)} label="부채 추가"/>
+            <AddForm fields={FD} onAdd={add(setDbt)} label="ë¶ì± ì¶ê°"/>
           </>}
         </div>
-        {/* 비율 바 */}
+        {/* ë¹ì¨ ë° */}
         <div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
-          <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:10}}>📊 수입 배분 비율</div>
-          {[{l:'고정 지출',r:expR,c:'#f87171',v:totalExp},{l:'부채 납부',r:dbtR,c:'#a78bfa',v:totalDPay},{l:'저축 가능',r:Math.min(savR,100),c:'#34d399',v:Math.max(0,netFlow)}].map((row,i)=>(
+          <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:10}}>ð ìì ë°°ë¶ ë¹ì¨</div>
+          {[{l:'ê³ ì  ì§ì¶',r:expR,c:'#f87171',v:totalExp},{l:'ë¶ì± ë©ë¶',r:dbtR,c:'#a78bfa',v:totalDPay},{l:'ì ì¶ ê°ë¥',r:Math.min(savR,100),c:'#34d399',v:Math.max(0,netFlow)}].map((row,i)=>(
             <div key={i} style={{display:'flex',alignItems:'center',gap:6,marginBottom:7}}>
               <div style={{width:56,fontSize:11,color:'#6b7280',flexShrink:0}}>{row.l}</div>
               <div style={{flex:1,background:'#f5f3ff',borderRadius:20,height:10,overflow:'hidden'}}>
@@ -388,33 +390,33 @@ function OverviewTab({incomes,setInc,expenses,setExp,debts,setDbt,totalInc,total
               <div style={{width:100,fontSize:11,textAlign:'right',color:'#374151',flexShrink:0}}>{$$(row.v)} <span style={{color:'#9ca3af'}}>({row.r.toFixed(0)}%)</span></div>
             </div>
           ))}
-          {netFlow<0&&<div style={{marginTop:8,padding:'8px 10px',background:'#fee2e2',borderRadius:8,fontSize:12,color:'#dc2626',fontWeight:600}}>⚠️ 지출이 수입보다 {$$(-netFlow)} 많습니다!</div>}
+          {netFlow<0&&<div style={{marginTop:8,padding:'8px 10px',background:'#fee2e2',borderRadius:8,fontSize:12,color:'#dc2626',fontWeight:600}}>â ï¸ ì§ì¶ì´ ììë³´ë¤ {$$(-netFlow)} ë§ìµëë¤!</div>}
         </div>
       </div>
 
-      {/* 오른쪽 차트 */}
+      {/* ì¤ë¥¸ìª½ ì°¨í¸ */}
       <div style={{display:'flex',flexDirection:'column',gap:12}}>
-        {/* 지출 카테고리 파이 */}
+        {/* ì§ì¶ ì¹´íê³ ë¦¬ íì´ */}
         <div style={{background:'white',borderRadius:14,padding:16,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
-          <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:4}}>🥧 {pieTitle}</div>
-          {mthExp.length>0&&<div style={{fontSize:11,color:'#9ca3af',marginBottom:8}}>가계부에 기록된 실제 거래 기준</div>}
+          <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:4}}>ð¥§ {pieTitle}</div>
+          {mthExp.length>0&&<div style={{fontSize:11,color:'#9ca3af',marginBottom:8}}>ê°ê³ë¶ì ê¸°ë¡ë ì¤ì  ê±°ë ê¸°ì¤</div>}
           {pieData.length>0
             ?<ResponsiveContainer width="100%" height={220}>
                <PieChart><Pie data={pieData} cx="50%" cy="50%" outerRadius={80} innerRadius={40} dataKey="value" nameKey="name" label={({name,percent})=>`${name} ${(percent*100).toFixed(0)}%`} labelLine={false}>
                  {pieData.map((e,i)=><Cell key={i} fill={e.fill}/>)}
                </Pie><Tooltip content={<PieTip/>}/></PieChart>
              </ResponsiveContainer>
-            :<div style={{height:100,display:'flex',alignItems:'center',justifyContent:'center',color:'#9ca3af',fontSize:13}}>지출 항목을 추가하면 차트가 표시됩니다</div>
+            :<div style={{height:100,display:'flex',alignItems:'center',justifyContent:'center',color:'#9ca3af',fontSize:13}}>ì§ì¶ í­ëª©ì ì¶ê°íë©´ ì°¨í¸ê° íìë©ëë¤</div>
           }
         </div>
-        {/* 재무 건강도 */}
+        {/* ì¬ë¬´ ê±´ê°ë */}
         <div style={{background:'white',borderRadius:14,padding:16,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
-          <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:12}}>💡 재무 건강 지표</div>
+          <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:12}}>ð¡ ì¬ë¬´ ê±´ê° ì§í</div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}} className="stats-3">
             {[
-              {l:'저축률',v:savR.toFixed(1)+'%',c:savR>=20?'#22c55e':savR>=10?'#f59e0b':'#ef4444',note:savR>=20?'✅ 우수':savR>=10?'⚡ 보통':'⚠️ 낮음'},
-              {l:'부채비율',v:totalInc>0?((totalDPay/totalInc)*100).toFixed(1)+'%':'N/A',c:(totalDPay/totalInc)<=0.2?'#22c55e':'#ef4444',note:(totalDPay/totalInc)<=0.2?'✅ 적정':'⚠️ 위험'},
-              {l:'월 순현금',v:$$(netFlow),c:netFlow>=0?'#3b82f6':'#ef4444',note:netFlow>=0?'저축가능':'지출초과'},
+              {l:'ì ì¶ë¥ ',v:savR.toFixed(1)+'%',c:savR>=20?'#22c55e':savR>=10?'#f59e0b':'#ef4444',note:savR>=20?'â ì°ì':savR>=10?'â¡ ë³´íµ':'â ï¸ ë®ì'},
+              {l:'ë¶ì±ë¹ì¨',v:totalInc>0?((totalDPay/totalInc)*100).toFixed(1)+'%':'N/A',c:(totalDPay/totalInc)<=0.2?'#22c55e':'#ef4444',note:(totalDPay/totalInc)<=0.2?'â ì ì ':'â ï¸ ìí'},
+              {l:'ì ìíê¸',v:$$(netFlow),c:netFlow>=0?'#3b82f6':'#ef4444',note:netFlow>=0?'ì ì¶ê°ë¥':'ì§ì¶ì´ê³¼'},
             ].map((k,i)=>(
               <div key={i} style={{background:'#f8fafc',borderRadius:10,padding:'10px 8px',textAlign:'center'}}>
                 <div style={{fontSize:11,color:'#6b7280',marginBottom:4}}>{k.l}</div>
@@ -429,12 +431,12 @@ function OverviewTab({incomes,setInc,expenses,setExp,debts,setDbt,totalInc,total
   );
 }
 
-/* ══════════════════════════════════════════
-   9. LEDGER TAB (가계부)
-══════════════════════════════════════════ */
+/* ââââââââââââââââââââââââââââââââââââââââââ
+   9. LEDGER TAB (ê°ê³ë¶)
+ââââââââââââââââââââââââââââââââââââââââââ */
 function LedgerTab({transactions,setTx}){
   const [mth,setMth]=useState(monthKey());
-  const [form,setForm]=useState({date:new Date().toISOString().slice(0,10),name:'',amount:'',type:'expense',category:'식비',isOneTime:false});
+  const [form,setForm]=useState({date:new Date().toISOString().slice(0,10),name:'',amount:'',type:'expense',category:'ìë¹',isOneTime:false});
   const [showForm,setShowForm]=useState(false);
   const [showChart,setShowChart]=useState(true);
 
@@ -443,14 +445,14 @@ function LedgerTab({transactions,setTx}){
   const mthExp=filtered.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
   const mthNet=mthInc-mthExp;
 
-  // 카테고리별 파이
+  // ì¹´íê³ ë¦¬ë³ íì´
   const catPie=useMemo(()=>{
     const m={};
     filtered.filter(t=>t.type==='expense').forEach(t=>{m[t.category]=(m[t.category]||0)+t.amount;});
     return Object.entries(m).map(([name,value],i)=>({name,value,fill:CAT_COLORS[name]||PIE_PAL[i%PIE_PAL.length]}));
   },[filtered]);
 
-  // 6개월 비교 바차트
+  // 6ê°ì ë¹êµ ë°ì°¨í¸
   const barData=useMemo(()=>{
     const months=[];
     let cur=mth;
@@ -470,7 +472,7 @@ function LedgerTab({transactions,setTx}){
 
   const delTx=(id)=>setTx(p=>p.filter(t=>t.id!==id));
 
-  // 날짜별 그룹핑
+  // ë ì§ë³ ê·¸ë£¹í
   const grouped=useMemo(()=>{
     const m={};
     filtered.forEach(t=>{(m[t.date]=m[t.date]||[]).push(t);});
@@ -479,19 +481,19 @@ function LedgerTab({transactions,setTx}){
 
   return(
     <div>
-      {/* 월 네비게이션 */}
+      {/* ì ë¤ë¹ê²ì´ì */}
       <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:16,marginBottom:14,background:'white',borderRadius:14,padding:'12px 20px',boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
         <button onClick={()=>setMth(prevMonth(mth))} style={{background:'none',border:'none',color:'#374151',display:'flex',padding:4}}><IcoLeft/></button>
         <span style={{fontWeight:800,fontSize:16,color:'#1f2937',minWidth:100,textAlign:'center'}}>{monthLabel(mth)}</span>
         <button onClick={()=>setMth(nextMonth(mth))} style={{background:'none',border:'none',color:'#374151',display:'flex',padding:4}}><IcoRight/></button>
       </div>
 
-      {/* 이달 요약 카드 */}
+      {/* ì´ë¬ ìì½ ì¹´ë */}
       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:14}} className="stats-3">
         {[
-          {l:'이달 수입',v:mthInc,c:'#22c55e',bg:'#f0fdf4'},
-          {l:'이달 지출',v:mthExp,c:'#ef4444',bg:'#fff1f2'},
-          {l:'이달 순수익',v:mthNet,c:mthNet>=0?'#3b82f6':'#f97316',bg:mthNet>=0?'#eff6ff':'#fff7ed'},
+          {l:'ì´ë¬ ìì',v:mthInc,c:'#22c55e',bg:'#f0fdf4'},
+          {l:'ì´ë¬ ì§ì¶',v:mthExp,c:'#ef4444',bg:'#fff1f2'},
+          {l:'ì´ë¬ ìììµ',v:mthNet,c:mthNet>=0?'#3b82f6':'#f97316',bg:mthNet>=0?'#eff6ff':'#fff7ed'},
         ].map((k,i)=>(
           <div key={i} style={{background:k.bg,borderRadius:12,padding:'12px 14px',textAlign:'center'}}>
             <div style={{fontSize:11,color:'#6b7280',marginBottom:4}}>{k.l}</div>
@@ -500,69 +502,69 @@ function LedgerTab({transactions,setTx}){
         ))}
       </div>
 
-      {/* 거래 추가 버튼 / 폼 */}
+      {/* ê±°ë ì¶ê° ë²í¼ / í¼ */}
       {!showForm
         ?<button onClick={()=>setShowForm(true)} style={{width:'100%',marginBottom:12,padding:'11px 0',background:'linear-gradient(135deg,#667eea,#c9a84c)',color:'white',border:'none',borderRadius:12,fontWeight:700,fontSize:14,display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-           <IcoPlus s={14}/> 거래 추가
+           <IcoPlus s={14}/> ê±°ë ì¶ê°
          </button>
         :<div style={{background:'white',borderRadius:14,padding:14,marginBottom:12,boxShadow:'0 2px 8px rgba(0,0,0,0.08)'}}>
-           <div style={{fontWeight:700,fontSize:13,marginBottom:10,color:'#1f2937'}}>📝 새 거래 입력</div>
+           <div style={{fontWeight:700,fontSize:13,marginBottom:10,color:'#1f2937'}}>ð ì ê±°ë ìë ¥</div>
            <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:8,marginBottom:8}}>
-             {/* 유형 */}
+             {/* ì í */}
              <div>
-               <div style={{fontSize:11,color:'#6b7280',marginBottom:3}}>유형</div>
+               <div style={{fontSize:11,color:'#6b7280',marginBottom:3}}>ì í</div>
                <div style={{display:'flex',gap:4}}>
                  {['expense','income'].map(t=>(
                    <button key={t} onClick={()=>setForm(f=>({...f,type:t}))}
                      style={{flex:1,padding:'7px 0',borderRadius:8,border:'none',fontSize:12,fontWeight:700,
                        background:form.type===t?(t==='income'?'#dcfce7':'#fee2e2'):'#f1f5f9',
                        color:form.type===t?(t==='income'?'#15803d':'#dc2626'):'#6b7280'}}>
-                     {t==='income'?'💰 수입':'💸 지출'}
+                     {t==='income'?'ð° ìì':'ð¸ ì§ì¶'}
                    </button>
                  ))}
                </div>
              </div>
-             {/* 날짜 */}
+             {/* ë ì§ */}
              <div>
-               <div style={{fontSize:11,color:'#6b7280',marginBottom:3}}>날짜</div>
+               <div style={{fontSize:11,color:'#6b7280',marginBottom:3}}>ë ì§</div>
                <input type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:8,padding:'7px 8px',fontSize:13}}/>
              </div>
-             {/* 내용 */}
+             {/* ë´ì© */}
              <div>
-               <div style={{fontSize:11,color:'#6b7280',marginBottom:3}}>내용</div>
-               <input type="text" placeholder="예: 스타벅스, 꽁돈" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:8,padding:'7px 8px',fontSize:13}}/>
+               <div style={{fontSize:11,color:'#6b7280',marginBottom:3}}>ë´ì©</div>
+               <input type="text" placeholder="ì: ì¤íë²ì¤, ê½ë" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:8,padding:'7px 8px',fontSize:13}}/>
              </div>
-             {/* 금액 */}
+             {/* ê¸ì¡ */}
              <div>
-               <div style={{fontSize:11,color:'#6b7280',marginBottom:3}}>금액 ($)</div>
+               <div style={{fontSize:11,color:'#6b7280',marginBottom:3}}>ê¸ì¡ ($)</div>
                <input type="number" placeholder="0" value={form.amount} onChange={e=>setForm(f=>({...f,amount:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:8,padding:'7px 8px',fontSize:13}}/>
              </div>
-             {/* 카테고리 */}
+             {/* ì¹´íê³ ë¦¬ */}
              <div>
-               <div style={{fontSize:11,color:'#6b7280',marginBottom:3}}>카테고리</div>
-               <select value={form.category} onChange={e=>{const cat=e.target.value;setForm(f=>({...f,category:cat,isOneTime:cat==='식비'?true:f.isOneTime}));}} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:8,padding:'7px 8px',fontSize:13,background:'white'}}>
-                 {(form.type==='income'?['수입','기타']:CAT_LIST).map(c=><option key={c} value={c}>{c}</option>)}
+               <div style={{fontSize:11,color:'#6b7280',marginBottom:3}}>ì¹´íê³ ë¦¬</div>
+               <select value={form.category} onChange={e=>{const cat=e.target.value;setForm(f=>({...f,category:cat,isOneTime:cat==='ìë¹'?true:f.isOneTime}));}} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:8,padding:'7px 8px',fontSize:13,background:'white'}}>
+                 {(form.type==='income'?['ìì','ê¸°í']:CAT_LIST).map(c=><option key={c} value={c}>{c}</option>)}
                </select>
              </div>
-             {/* 1회성 */}
+             {/* 1íì± */}
              <div style={{display:'flex',alignItems:'center',gap:6,paddingTop:18}}>
                <input type="checkbox" id="oneTime" checked={form.isOneTime} onChange={e=>setForm(f=>({...f,isOneTime:e.target.checked}))} style={{width:16,height:16,accentColor:'#c9a84c'}}/>
-               <label htmlFor="oneTime" style={{fontSize:12,color:'#374151',fontWeight:600}}>🎁 1회성</label>
+               <label htmlFor="oneTime" style={{fontSize:12,color:'#374151',fontWeight:600}}>ð 1íì±</label>
              </div>
            </div>
            <div style={{display:'flex',gap:6}}>
-             <button onClick={addTx} style={{flex:1,padding:'9px 0',background:'#1e1b4b',color:'white',border:'none',borderRadius:10,fontWeight:700,fontSize:13}}>추가</button>
-             <button onClick={()=>setShowForm(false)} style={{padding:'9px 14px',background:'#e5e7eb',border:'none',borderRadius:10,fontSize:13}}>취소</button>
+             <button onClick={addTx} style={{flex:1,padding:'9px 0',background:'#1e1b4b',color:'white',border:'none',borderRadius:10,fontWeight:700,fontSize:13}}>ì¶ê°</button>
+             <button onClick={()=>setShowForm(false)} style={{padding:'9px 14px',background:'#e5e7eb',border:'none',borderRadius:10,fontSize:13}}>ì·¨ì</button>
            </div>
          </div>
       }
 
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}} className="desktop-grid">
-        {/* 거래 목록 */}
+        {/* ê±°ë ëª©ë¡ */}
         <div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
-          <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:10}}>📋 거래 내역 ({filtered.length}건)</div>
+          <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:10}}>ð ê±°ë ë´ì­ ({filtered.length}ê±´)</div>
           {grouped.length===0
-            ?<div style={{textAlign:'center',padding:'24px 0',color:'#9ca3af',fontSize:13}}>이달 거래 내역이 없습니다<br/>위 버튼으로 추가하세요</div>
+            ?<div style={{textAlign:'center',padding:'24px 0',color:'#9ca3af',fontSize:13}}>ì´ë¬ ê±°ë ë´ì­ì´ ììµëë¤<br/>ì ë²í¼ì¼ë¡ ì¶ê°íì¸ì</div>
             :<div style={{maxHeight:380,overflowY:'auto'}}>
                {grouped.map(([date,txns])=>(
                  <div key={date} style={{marginBottom:12}}>
@@ -572,7 +574,7 @@ function LedgerTab({transactions,setTx}){
                        <div>
                          <span style={{fontSize:13,fontWeight:600,color:'#1f2937'}}>{t.name}</span>
                          <span style={{marginLeft:6,fontSize:11,background:'rgba(255,255,255,0.7)',padding:'1px 6px',borderRadius:20,color:'#6b7280'}}>{t.category}</span>
-                         {t.isOneTime&&<span style={{marginLeft:4,fontSize:10,background:'#fef3c7',padding:'1px 5px',borderRadius:20,color:'#92400e'}}>1회</span>}
+                         {t.isOneTime&&<span style={{marginLeft:4,fontSize:10,background:'#fef3c7',padding:'1px 5px',borderRadius:20,color:'#92400e'}}>1í</span>}
                        </div>
                        <div style={{display:'flex',alignItems:'center',gap:6}}>
                          <span style={{fontSize:13,fontWeight:800,color:t.type==='income'?'#15803d':'#dc2626'}}>{t.type==='income'?'+':'-'}{$$(t.amount)}</span>
@@ -586,23 +588,23 @@ function LedgerTab({transactions,setTx}){
           }
         </div>
 
-        {/* 차트 패널 */}
+        {/* ì°¨í¸ í¨ë */}
         <div style={{display:'flex',flexDirection:'column',gap:10}}>
-          {/* 카테고리 파이 */}
+          {/* ì¹´íê³ ë¦¬ íì´ */}
           <div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)',flex:1}}>
-            <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:8}}>🥧 카테고리별 지출</div>
+            <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:8}}>ð¥§ ì¹´íê³ ë¦¬ë³ ì§ì¶</div>
             {catPie.length>0
               ?<ResponsiveContainer width="100%" height={170}>
                  <PieChart><Pie data={catPie} cx="50%" cy="50%" outerRadius={65} innerRadius={30} dataKey="value" nameKey="name">
                    {catPie.map((e,i)=><Cell key={i} fill={e.fill}/>)}
                  </Pie><Tooltip content={<PieTip/>}/><Legend wrapperStyle={{fontSize:10}}/></PieChart>
                </ResponsiveContainer>
-              :<div style={{height:80,display:'flex',alignItems:'center',justifyContent:'center',color:'#9ca3af',fontSize:12}}>지출 거래 없음</div>
+              :<div style={{height:80,display:'flex',alignItems:'center',justifyContent:'center',color:'#9ca3af',fontSize:12}}>ì§ì¶ ê±°ë ìì</div>
             }
           </div>
-          {/* 6개월 비교 */}
+          {/* 6ê°ì ë¹êµ */}
           <div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)',flex:1}}>
-            <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:8}}>📊 최근 6개월 비교</div>
+            <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:8}}>ð ìµê·¼ 6ê°ì ë¹êµ</div>
             <ResponsiveContainer width="100%" height={160}>
               <BarChart data={barData} margin={{top:2,right:4,left:-16,bottom:0}}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6"/>
@@ -610,8 +612,8 @@ function LedgerTab({transactions,setTx}){
                 <YAxis tickFormatter={v=>fmt(v)} tick={{fontSize:9,fill:'#9ca3af'}}/>
                 <Tooltip content={<Tip/>}/>
                 <Legend wrapperStyle={{fontSize:10}}/>
-                <Bar dataKey="income" name="수입" fill="#34d399" radius={[3,3,0,0]}/>
-                <Bar dataKey="expense" name="지출" fill="#f87171" radius={[3,3,0,0]}/>
+                <Bar dataKey="income" name="ìì" fill="#34d399" radius={[3,3,0,0]}/>
+                <Bar dataKey="expense" name="ì§ì¶" fill="#f87171" radius={[3,3,0,0]}/>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -621,20 +623,20 @@ function LedgerTab({transactions,setTx}){
   );
 }
 
-/* ══════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââ
    10. INVESTMENT TAB
-══════════════════════════════════════════ */
+ââââââââââââââââââââââââââââââââââââââââââ */
 function InvestmentTab({investments,setInv}){
   const upd=(id,v)=>setInv(p=>p.map(x=>x.id===id?{...x,...v}:x));
   const del=(id)=>setInv(p=>p.filter(x=>x.id!==id));
   const add=(item)=>setInv(p=>[...p,item]);
 
   const FV=[
-    {key:'name',label:'계좌명',ph:'예: Robinhood 주식'},
-    {key:'type',label:'유형',type:'select',opts:['stock','crypto','realEstate','savings','other'],optLabels:INV_LABELS,def:'stock'},
-    {key:'balance',label:'현재 잔고 ($)',type:'number',def:0},
-    {key:'monthlyContribution',label:'월 납입액 ($)',type:'number',def:0},
-    {key:'expectedReturn',label:'예상 연수익률 (%)',type:'number',def:7},
+    {key:'name',label:'ê³ì¢ëª',ph:'ì: Robinhood ì£¼ì'},
+    {key:'type',label:'ì í',type:'select',opts:['stock','crypto','realEstate','savings','other'],optLabels:INV_LABELS,def:'stock'},
+    {key:'balance',label:'íì¬ ìê³  ($)',type:'number',def:0},
+    {key:'monthlyContribution',label:'ì ë©ìì¡ ($)',type:'number',def:0},
+    {key:'expectedReturn',label:'ìì ì°ììµë¥  (%)',type:'number',def:7},
   ];
 
   const totalBal=investments.reduce((s,i)=>s+i.balance,0);
@@ -646,9 +648,9 @@ function InvestmentTab({investments,setInv}){
     <div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:14}} className="stats-3">
         {[
-          {l:'총 투자 잔고',v:$$(totalBal),c:'#3b82f6',bg:'#eff6ff'},
-          {l:'월 투자 납입',v:$$(totalMth),c:'#8b5cf6',bg:'#f5f3ff'},
-          {l:'투자 계좌 수',v:investments.length+'개',c:'#4f46e5',bg:'#f5f3ff'},
+          {l:'ì´ í¬ì ìê³ ',v:$$(totalBal),c:'#3b82f6',bg:'#eff6ff'},
+          {l:'ì í¬ì ë©ì',v:$$(totalMth),c:'#8b5cf6',bg:'#f5f3ff'},
+          {l:'í¬ì ê³ì¢ ì',v:investments.length+'ê°',c:'#4f46e5',bg:'#f5f3ff'},
         ].map((k,i)=>(
           <div key={i} style={{background:k.bg,borderRadius:12,padding:'12px 14px',textAlign:'center'}}>
             <div style={{fontSize:11,color:'#6b7280',marginBottom:4}}>{k.l}</div>
@@ -658,28 +660,28 @@ function InvestmentTab({investments,setInv}){
       </div>
 
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}} className="desktop-grid">
-        {/* 투자 계좌 목록 */}
+        {/* í¬ì ê³ì¢ ëª©ë¡ */}
         <div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
-          <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:10}}>💼 투자 계좌</div>
+          <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:10}}>ð¼ í¬ì ê³ì¢</div>
           {investments.map(i=>(
             <div key={i.id} style={{marginBottom:6}}>
               <EditRow item={i} fields={FV} onSave={upd} onDelete={del} bg="bg-blue-50"/>
               <div style={{fontSize:11,color:'#6b7280',padding:'0 4px 4px',display:'flex',gap:10}}>
-                <span>유형: <strong style={{color:INV_COLORS[i.type]||'#6b7280'}}>{INV_LABELS[i.type]}</strong></span>
-                <span>월 납입: <strong>{$$(i.monthlyContribution)}</strong></span>
-                <span>예상수익: <strong style={{color:'#22c55e'}}>+{i.expectedReturn}%/yr</strong></span>
+                <span>ì í: <strong style={{color:INV_COLORS[i.type]||'#6b7280'}}>{INV_LABELS[i.type]}</strong></span>
+                <span>ì ë©ì: <strong>{$$(i.monthlyContribution)}</strong></span>
+                <span>ììììµ: <strong style={{color:'#22c55e'}}>+{i.expectedReturn}%/yr</strong></span>
               </div>
             </div>
           ))}
-          <AddForm fields={FV} onAdd={add} label="투자 계좌 추가"/>
+          <AddForm fields={FV} onAdd={add} label="í¬ì ê³ì¢ ì¶ê°"/>
           <div style={{marginTop:10,padding:'8px 10px',background:'#fef3c7',borderRadius:8,fontSize:11,color:'#92400e'}}>
-            ⚡ 잔고는 직접 업데이트하세요. 예상 수익률은 미래 예측에 사용됩니다.
+            â¡ ìê³ ë ì§ì  ìë°ì´í¸íì¸ì. ìì ììµë¥ ì ë¯¸ë ìì¸¡ì ì¬ì©ë©ëë¤.
           </div>
         </div>
 
-        {/* 포트폴리오 파이 */}
+        {/* í¬í¸í´ë¦¬ì¤ íì´ */}
         <div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
-          <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:8}}>🥧 포트폴리오 구성</div>
+          <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:8}}>ð¥§ í¬í¸í´ë¦¬ì¤ êµ¬ì±</div>
           {pieData.filter(d=>d.value>0).length>0
             ?<>
                <ResponsiveContainer width="100%" height={200}>
@@ -699,7 +701,7 @@ function InvestmentTab({investments,setInv}){
                  ))}
                </div>
              </>
-            :<div style={{height:140,display:'flex',alignItems:'center',justifyContent:'center',color:'#9ca3af',fontSize:13,textAlign:'center'}}>투자 계좌에 잔고를 입력하면<br/>포트폴리오 차트가 표시됩니다</div>
+            :<div style={{height:140,display:'flex',alignItems:'center',justifyContent:'center',color:'#9ca3af',fontSize:13,textAlign:'center'}}>í¬ì ê³ì¢ì ìê³ ë¥¼ ìë ¥íë©´<br/>í¬í¸í´ë¦¬ì¤ ì°¨í¸ê° íìë©ëë¤</div>
           }
         </div>
       </div>
@@ -707,9 +709,9 @@ function InvestmentTab({investments,setInv}){
   );
 }
 
-/* ══════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââ
    11. PROJECTION TAB
-══════════════════════════════════════════ */
+ââââââââââââââââââââââââââââââââââââââââââ */
 function ProjectionTab({currentBalance,setCB,savingsGoal,setSG,projMonths,setPM,projData,milestones,totalInc,totalExp,totalDPay}){
   const [showTable,setShowTable]=useState(false);
   const netFlow=totalInc-totalExp-totalDPay;
@@ -717,24 +719,24 @@ function ProjectionTab({currentBalance,setCB,savingsGoal,setSG,projMonths,setPM,
 
   return(
     <div>
-      {/* 설정 */}
+      {/* ì¤ì  */}
       <div style={{background:'white',borderRadius:14,padding:14,marginBottom:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
         <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}} className="stats-3">
-          <div><label style={{fontSize:11,fontWeight:700,color:'#6b7280',display:'block',marginBottom:4,letterSpacing:1}}>현재 잔고 ($)</label>
+          <div><label style={{fontSize:11,fontWeight:700,color:'#6b7280',display:'block',marginBottom:4,letterSpacing:1}}>íì¬ ìê³  ($)</label>
             <input type="number" value={currentBalance} onChange={e=>setCB(parseFloat(e.target.value)||0)} style={{width:'100%',border:'2px solid #e5e7eb',borderRadius:10,padding:'8px 10px',fontSize:15,fontWeight:700,color:'#4f46e5'}}/></div>
-          <div><label style={{fontSize:11,fontWeight:700,color:'#6b7280',display:'block',marginBottom:4,letterSpacing:1}}>저축 목표 ($)</label>
+          <div><label style={{fontSize:11,fontWeight:700,color:'#6b7280',display:'block',marginBottom:4,letterSpacing:1}}>ì ì¶ ëª©í ($)</label>
             <input type="number" value={savingsGoal} onChange={e=>setSG(parseFloat(e.target.value)||0)} style={{width:'100%',border:'2px solid #e5e7eb',borderRadius:10,padding:'8px 10px',fontSize:15}}/></div>
-          <div><label style={{fontSize:11,fontWeight:700,color:'#6b7280',display:'block',marginBottom:4,letterSpacing:1}}>예측 기간</label>
+          <div><label style={{fontSize:11,fontWeight:700,color:'#6b7280',display:'block',marginBottom:4,letterSpacing:1}}>ìì¸¡ ê¸°ê°</label>
             <select value={projMonths} onChange={e=>setPM(parseInt(e.target.value))} style={{width:'100%',border:'2px solid #e5e7eb',borderRadius:10,padding:'8px 10px',fontSize:14,background:'white'}}>
-              <option value={12}>1년</option><option value={24}>2년</option><option value={36}>3년</option>
-              <option value={60}>5년</option><option value={120}>10년</option>
+              <option value={12}>1ë</option><option value={24}>2ë</option><option value={36}>3ë</option>
+              <option value={60}>5ë</option><option value={120}>10ë</option>
             </select></div>
         </div>
       </div>
 
-      {/* 차트 */}
+      {/* ì°¨í¸ */}
       <div style={{background:'white',borderRadius:14,padding:16,marginBottom:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
-        <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:12}}>📈 순자산 성장 예측 ({projMonths>=12?`${projMonths/12}년`:`${projMonths}개월`})</div>
+        <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:12}}>ð ììì° ì±ì¥ ìì¸¡ ({projMonths>=12?`${projMonths/12}ë`:`${projMonths}ê°ì`})</div>
         <ResponsiveContainer width="100%" height={240}>
           <AreaChart data={projData} margin={{top:5,right:8,left:0,bottom:5}}>
             <defs>
@@ -748,42 +750,42 @@ function ProjectionTab({currentBalance,setCB,savingsGoal,setSG,projMonths,setPM,
             <XAxis dataKey="label" tick={{fontSize:10,fill:'#9ca3af'}}/>
             <YAxis tickFormatter={v=>fmt(v)} tick={{fontSize:10,fill:'#9ca3af'}}/>
             <Tooltip content={<Tip/>}/><Legend wrapperStyle={{fontSize:11}}/>
-            <Area type="monotone" dataKey="balance" name="현금 잔고" stroke="#3b82f6" fill="url(#bG)" strokeWidth={2} dot={false}/>
-            <Area type="monotone" dataKey="investments" name="투자 잔고" stroke="#8b5cf6" fill="url(#iG)" strokeWidth={2} dot={false}/>
-            <Area type="monotone" dataKey="netWorth" name="순자산" stroke="#10b981" fill="url(#nG)" strokeWidth={2.5} dot={false}/>
-            <Area type="monotone" dataKey="debt" name="총 부채" stroke="#ef4444" fill="url(#dG)" strokeWidth={1.5} dot={false}/>
+            <Area type="monotone" dataKey="balance" name="íê¸ ìê³ " stroke="#3b82f6" fill="url(#bG)" strokeWidth={2} dot={false}/>
+            <Area type="monotone" dataKey="investments" name="í¬ì ìê³ " stroke="#8b5cf6" fill="url(#iG)" strokeWidth={2} dot={false}/>
+            <Area type="monotone" dataKey="netWorth" name="ììì°" stroke="#10b981" fill="url(#nG)" strokeWidth={2.5} dot={false}/>
+            <Area type="monotone" dataKey="debt" name="ì´ ë¶ì±" stroke="#ef4444" fill="url(#dG)" strokeWidth={1.5} dot={false}/>
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
-      {/* 마일스톤 */}
+      {/* ë§ì¼ì¤í¤ */}
       {milestones.length>0&&(
         <div style={{background:'white',borderRadius:14,padding:14,marginBottom:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
-          <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:10}}>🏁 주요 마일스톤</div>
+          <div style={{fontWeight:700,fontSize:13,color:'#1f2937',marginBottom:10}}>ð ì£¼ì ë§ì¼ì¤í¤</div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}} className="milestone-grid">
             {milestones.map((ms,i)=>(
               <div key={i} style={{borderRadius:12,padding:'12px 10px',border:'1px solid #e0e7ff',background:'linear-gradient(135deg,#eef2ff,#f5f3ff)',textAlign:'center'}}>
                 <div style={{fontSize:22,marginBottom:4}}>{ms.icon}</div>
                 <div style={{fontSize:11,color:'#4338ca',fontWeight:600,lineHeight:1.3}}>{ms.label}</div>
-                <div style={{fontSize:15,fontWeight:900,color:'#1e40af',marginTop:4}}>{ms.month===0?'이미 달성!':ms.month+'개월 후'}</div>
-                {ms.month>0&&<div style={{fontSize:10,color:'#9ca3af'}}>{Math.floor(ms.month/12)>0?`${Math.floor(ms.month/12)}년 `:''}{ms.month%12>0?`${ms.month%12}개월`:''}</div>}
+                <div style={{fontSize:15,fontWeight:900,color:'#1e40af',marginTop:4}}>{ms.month===0?'ì´ë¯¸ ë¬ì±!':ms.month+'ê°ì í'}</div>
+                {ms.month>0&&<div style={{fontSize:10,color:'#9ca3af'}}>{Math.floor(ms.month/12)>0?`${Math.floor(ms.month/12)}ë `:''}{ms.month%12>0?`${ms.month%12}ê°ì`:''}</div>}
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* 예측표 토글 */}
+      {/* ìì¸¡í í ê¸ */}
       <div style={{background:'white',borderRadius:14,overflow:'hidden',boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
         <button onClick={()=>setShowTable(p=>!p)} style={{width:'100%',padding:'12px 16px',display:'flex',justifyContent:'space-between',alignItems:'center',background:'none',border:'none',fontWeight:700,fontSize:13,color:'#1f2937'}}>
-          <span>📋 월별 상세 예측표</span>
-          <span style={{display:'flex',alignItems:'center',gap:4,fontSize:12,color:'#9ca3af'}}>{showTable?'접기':'펼치기'}{showTable?<IcoUp/>:<IcoDn/>}</span>
+          <span>ð ìë³ ìì¸ ìì¸¡í</span>
+          <span style={{display:'flex',alignItems:'center',gap:4,fontSize:12,color:'#9ca3af'}}>{showTable?'ì ê¸°':'í¼ì¹ê¸°'}{showTable?<IcoUp/>:<IcoDn/>}</span>
         </button>
         {showTable&&(
           <div style={{maxHeight:360,overflowY:'auto'}}>
             <table style={{width:'100%',borderCollapse:'collapse',fontSize:12}}>
               <thead style={{background:'#f8fafc',position:'sticky',top:0}}>
-                <tr>{['기간','현금','투자','부채','순자산','전월比'].map(h=>(
+                <tr>{['ê¸°ê°','íê¸','í¬ì','ë¶ì±','ììì°','ì ìæ¯'].map(h=>(
                   <th key={h} style={{padding:'8px 10px',textAlign:'left',fontSize:11,color:'#6b7280',fontWeight:700,borderBottom:'1px solid #e5e7eb'}}>{h}</th>
                 ))}</tr>
               </thead>
@@ -798,7 +800,7 @@ function ProjectionTab({currentBalance,setCB,savingsGoal,setSG,projMonths,setPM,
                       <td style={{padding:'7px 10px',color:'#8b5cf6',fontWeight:600}}>{$$(row.investments)}</td>
                       <td style={{padding:'7px 10px',color:'#ef4444'}}>{$$(row.debt)}</td>
                       <td style={{padding:'7px 10px',color:row.netWorth>=0?'#10b981':'#ef4444',fontWeight:700}}>{$$(row.netWorth)}</td>
-                      <td style={{padding:'7px 10px',color:diff>=0?'#22c55e':'#ef4444',fontSize:11}}>{prev&&`${diff>=0?'▲':'▼'}${$$(Math.abs(diff))}`}</td>
+                      <td style={{padding:'7px 10px',color:diff>=0?'#22c55e':'#ef4444',fontSize:11}}>{prev&&`${diff>=0?'â²':'â¼'}${$$(Math.abs(diff))}`}</td>
                     </tr>
                   );
                 })}
@@ -811,13 +813,13 @@ function ProjectionTab({currentBalance,setCB,savingsGoal,setSG,projMonths,setPM,
   );
 }
 
-/* ══════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââ
    12. DASHBOARD (state + layout)
-══════════════════════════════════════════ */
+ââââââââââââââââââââââââââââââââââââââââââ */
 function Dashboard({user,onLogout}){
   const K=k=>`hb_${user}_${k}`;
   const [tab,setTab]=useState('overview');
-  const [currentBalance,setCB]=useState(()=>LS.get(K('balance'),5000));
+  const [currentBalance,setCB]=useState(()=>LS.get(K('balance'),0));
   const [savingsGoal,setSG]=useState(()=>LS.get(K('goal'),50000));
   const [projMonths,setPM]=useState(()=>LS.get(K('months'),60));
   const [incomes,setInc]=useState(()=>LS.get(K('incomes'),DEF_INC));
@@ -844,7 +846,7 @@ function Dashboard({user,onLogout}){
   const netWorth=totalAssets-totalDAmt;
   const netFlow=totalInc-totalExp-totalDPay;
 
-  // 미래 예측 (현금 + 투자 + 이자)
+  // ë¯¸ë ìì¸¡ (íê¸ + í¬ì + ì´ì)
   const projData=useMemo(()=>{
     let bal=currentBalance;
     let ds=debts.map(d=>({...d,rem:d.totalAmount}));
@@ -853,7 +855,7 @@ function Dashboard({user,onLogout}){
     for(let m=0;m<=projMonths;m++){
       const dTotal=ds.reduce((s,d)=>s+Math.max(0,d.rem),0);
       const iTotal=ivs.reduce((s,i)=>s+i.bal,0);
-      rows.push({m,label:m===0?'현재':m%12===0?`${m/12}년`:`${m}개월`,
+      rows.push({m,label:m===0?'íì¬':m%12===0?`${m/12}ë`:`${m}ê°ì`,
         balance:Math.round(bal),debt:Math.round(dTotal),investments:Math.round(iTotal),
         netWorth:Math.round(bal+iTotal-dTotal)});
       if(m<projMonths){
@@ -875,66 +877,66 @@ function Dashboard({user,onLogout}){
   const milestones=useMemo(()=>{
     const r=[];
     const g=projData.find(d=>d.netWorth>=savingsGoal);
-    if(g) r.push({icon:'🎯',label:`순자산 목표 달성 (${$$(savingsGoal)})`,month:g.m});
+    if(g) r.push({icon:'ð¯',label:`ììì° ëª©í ë¬ì± (${$$(savingsGoal)})`,month:g.m});
     const df=projData.find(d=>d.debt<=0&&d.m>0);
-    if(df) r.push({icon:'🔓',label:'부채 완전 상환',month:df.m});
+    if(df) r.push({icon:'ð',label:'ë¶ì± ìì  ìí',month:df.m});
     const pn=projData.find(d=>d.netWorth>=0&&d.m>0);
-    if(pn&&netWorth<0) r.push({icon:'📈',label:'순자산 플러스 전환',month:pn.m});
+    if(pn&&netWorth<0) r.push({icon:'ð',label:'ììì° íë¬ì¤ ì í',month:pn.m});
     return r;
   },[projData,savingsGoal,netWorth]);
 
   const logout=()=>{ Auth.clear(); onLogout(); };
-  const reset=()=>{ if(!confirm(`${user}의 모든 데이터를 초기화할까요?`))return; setCB(5000);setSG(50000);setPM(60);setInc(DEF_INC);setExp(DEF_EXP);setDbt(DEF_DBT);setInv(DEF_INV);setTx(DEF_TXN); };
+  const reset=()=>{ if(!confirm(`${user}ì ëª¨ë  ë°ì´í°ë¥¼ ì´ê¸°íí ê¹ì?`))return; setCB(0);setSG(50000);setPM(60);setInc(DEF_INC);setExp(DEF_EXP);setDbt(DEF_DBT);setInv(DEF_INV);setTx(DEF_TXN); };
 
   const TABS=[
-    {k:'overview',icon:'🏠',label:'대시보드'},
-    {k:'ledger',icon:'📒',label:'가계부'},
-    {k:'investments',icon:'📈',label:'투자'},
-    {k:'projection',icon:'🔮',label:'예측'},
+    {k:'overview',icon:'ð ',label:'ëìë³´ë'},
+    {k:'ledger',icon:'ð',label:'ê°ê³ë¶'},
+    {k:'investments',icon:'ð',label:'í¬ì'},
+    {k:'projection',icon:'ð®',label:'ìì¸¡'},
   ];
 
-  // 상단 카드 데이터
+  // ìë¨ ì¹´ë ë°ì´í°
   const cards=[
-    {l:'월 수입',v:$$(totalInc),sub:`${incomes.length}개 수입원`,c:'#22c55e',border:'#bbf7d0'},
-    {l:'월 지출 합계',v:$$(totalExp+totalDPay),sub:`고정 ${$$(totalExp)} + 부채 ${$$(totalDPay)}`,c:'#ef4444',border:'#fecaca'},
-    {l:'월 순 현금흐름',v:(netFlow>=0?'+':'')+$$(netFlow),sub:netFlow>=0?'💚 저축 가능':'⚠️ 지출 초과',c:netFlow>=0?'#3b82f6':'#f97316',border:netFlow>=0?'#bfdbfe':'#fed7aa'},
-    {l:'투자 잔고',v:$$(totalInvBal),sub:`${investments.length}개 계좌`,c:'#8b5cf6',border:'#ddd6fe'},
-    {l:'총 자산',v:$$(totalAssets),sub:`현금 ${$$(currentBalance)} + 투자 ${$$(totalInvBal)}`,c:'#4f46e5',border:'#ddd6fe'},
-    {l:'순자산 (Net Worth)',v:$$(netWorth),sub:`총자산 - 부채 ${$$(totalDAmt)}`,c:netWorth>=0?'#c9a84c':'#ef4444',border:netWorth>=0?'#fef3c7':'#fecaca'},
+    {l:'ì ìì',v:$$(totalInc),sub:`${incomes.length}ê° ììì`,c:'#22c55e',border:'#bbf7d0'},
+    {l:'ì ì§ì¶ í©ê³',v:$$(totalExp+totalDPay),sub:`ê³ ì  ${$$(totalExp)} + ë¶ì± ${$$(totalDPay)}`,c:'#ef4444',border:'#fecaca'},
+    {l:'ì ì íê¸íë¦',v:(netFlow>=0?'+':'')+$$(netFlow),sub:netFlow>=0?'ð ì ì¶ ê°ë¥':'â ï¸ ì§ì¶ ì´ê³¼',c:netFlow>=0?'#3b82f6':'#f97316',border:netFlow>=0?'#bfdbfe':'#fed7aa'},
+    {l:'í¬ì ìê³ ',v:$$(totalInvBal),sub:`${investments.length}ê° ê³ì¢`,c:'#8b5cf6',border:'#ddd6fe'},
+    {l:'ì´ ìì°',v:$$(totalAssets),sub:`íê¸ ${$$(currentBalance)} + í¬ì ${$$(totalInvBal)}`,c:'#4f46e5',border:'#ddd6fe'},
+    {l:'ììì° (Net Worth)',v:$$(netWorth),sub:`ì´ìì° - ë¶ì± ${$$(totalDAmt)}`,c:netWorth>=0?'#c9a84c':'#ef4444',border:netWorth>=0?'#fef3c7':'#fecaca'},
   ];
 
   return(
     <div style={{minHeight:'100vh',background:'#f5f3ff'}}>
-      {/* 헤더 */}
+      {/* í¤ë */}
       <div style={{background:'linear-gradient(135deg,#667eea 0%,#764ba2 100%)',padding:'14px 20px'}}>
         <div style={{maxWidth:1120,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
           <div>
             <div style={{color:'#c9a84c',fontSize:20,fontWeight:900,letterSpacing:2,lineHeight:1}}>HILLIARD BUFFSHIRE</div>
             <div style={{color:'#67e8f9',fontSize:10,letterSpacing:4,marginTop:4,fontWeight:800}}>PERSONAL FINANCE DASHBOARD</div>
-            <div style={{color:'rgba(255,255,255,0.85)',fontSize:13,letterSpacing:1,fontWeight:500,marginTop:3}}>힐리아드 버프셔 재무 관리 스테이션</div>
+            <div style={{color:'rgba(255,255,255,0.85)',fontSize:13,letterSpacing:1,fontWeight:500,marginTop:3}}>íë¦¬ìë ë²íì ì¬ë¬´ ê´ë¦¬ ì¤íì´ì</div>
           </div>
           <div style={{display:'flex',alignItems:'center',gap:8}}>
             <div style={{display:'flex',alignItems:'center',gap:6,padding:'6px 12px',background:'rgba(167,139,250,0.2)',border:'1px solid rgba(167,139,250,0.4)',borderRadius:20,color:'#c9a84c',fontSize:13,fontWeight:700}}>
               <IcoUser s={13}/>{user.charAt(0).toUpperCase()+user.slice(1)}
             </div>
-            <button onClick={reset} style={{padding:'6px 10px',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:20,color:'#94a3b8',fontSize:11,fontWeight:600}}>초기화</button>
+            <button onClick={reset} style={{padding:'6px 10px',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:20,color:'#94a3b8',fontSize:11,fontWeight:600}}>ì´ê¸°í</button>
             <button onClick={logout} style={{display:'flex',alignItems:'center',gap:4,padding:'6px 12px',background:'rgba(255,255,255,0.08)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:20,color:'#94a3b8',fontSize:12,fontWeight:600}}>
-              <IcoOut s={13}/>로그아웃
+              <IcoOut s={13}/>ë¡ê·¸ìì
             </button>
           </div>
         </div>
       </div>
 
-      {/* 순자산 하이라이트 바 */}
+      {/* ììì° íì´ë¼ì´í¸ ë° */}
       <div style={{background:'linear-gradient(135deg,#764ba2,#4f46e5)',padding:'13px 20px',borderBottom:'1px solid rgba(167,139,250,0.3)'}}>
         <div style={{maxWidth:1120,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
-          <span style={{color:'rgba(255,255,255,0.85)',fontSize:13,fontWeight:600,letterSpacing:0.5}}>순자산 (Net Worth)</span>
+          <span style={{color:'rgba(255,255,255,0.85)',fontSize:13,fontWeight:600,letterSpacing:0.5}}>ììì° (Net Worth)</span>
           <span style={{color:netWorth>=0?'#fde68a':'#fca5a5',fontSize:27,fontWeight:900,letterSpacing:1}}>{$$(netWorth)}</span>
-          <span style={{color:'rgba(255,255,255,0.55)',fontSize:12}}>= {$$(totalAssets)} − {$$(totalDAmt)}</span>
+          <span style={{color:'rgba(255,255,255,0.55)',fontSize:12}}>= {$$(totalAssets)} â {$$(totalDAmt)}</span>
         </div>
       </div>
 
-      {/* 탭 네비게이션 */}
+      {/* í­ ë¤ë¹ê²ì´ì */}
       <div style={{background:'white',borderBottom:'1px solid #e2e8f0',position:'sticky',top:0,zIndex:10}}>
         <div style={{maxWidth:1120,margin:'0 auto',display:'flex'}}>
           {TABS.map(t=>(
@@ -948,9 +950,9 @@ function Dashboard({user,onLogout}){
         </div>
       </div>
 
-      {/* 메인 콘텐츠 */}
+      {/* ë©ì¸ ì½íì¸  */}
       <div style={{maxWidth:1120,margin:'0 auto',padding:'16px'}}>
-        {/* 요약 카드 6개 */}
+        {/* ìì½ ì¹´ë 6ê° */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:16}} className="cards-grid">
           {cards.map((c,i)=>(
             <div key={i} style={{background:'white',borderRadius:12,padding:'12px 14px',boxShadow:'0 1px 3px rgba(0,0,0,0.06)',borderLeft:`4px solid ${c.border}`}}>
@@ -961,23 +963,23 @@ function Dashboard({user,onLogout}){
           ))}
         </div>
 
-        {/* 탭 콘텐츠 */}
+        {/* í­ ì½íì¸  */}
         {tab==='overview'&&<OverviewTab incomes={incomes} setInc={setInc} expenses={expenses} setExp={setExp} debts={debts} setDbt={setDbt} totalInc={totalInc} totalExp={totalExp} totalDPay={totalDPay} netFlow={netFlow} transactions={transactions}/>}
         {tab==='ledger'&&<LedgerTab transactions={transactions} setTx={setTx}/>}
         {tab==='investments'&&<InvestmentTab investments={investments} setInv={setInv}/>}
         {tab==='projection'&&<ProjectionTab currentBalance={currentBalance} setCB={setCB} savingsGoal={savingsGoal} setSG={setSG} projMonths={projMonths} setPM={setPM} projData={projData.filter((_,i)=>i%Math.max(1,Math.floor(projMonths/20))===0)} milestones={milestones} totalInc={totalInc} totalExp={totalExp} totalDPay={totalDPay}/>}
 
         <div style={{textAlign:'center',fontSize:10,color:'#cbd5e1',marginTop:20,paddingBottom:20}}>
-          Hilliard Buffshire Personal Finance Dashboard · 데이터는 브라우저에 저장됩니다
+          Hilliard Buffshire Personal Finance Dashboard Â· ë°ì´í°ë ë¸ë¼ì°ì ì ì ì¥ë©ëë¤
         </div>
       </div>
     </div>
   );
 }
 
-/* ══════════════════════════════════════════
+/* ââââââââââââââââââââââââââââââââââââââââââ
    13. APP ROOT
-══════════════════════════════════════════ */
+ââââââââââââââââââââââââââââââââââââââââââ */
 function App(){
   const [user,setUser]=useState(()=>Auth.session());
   const login=(u)=>setUser(u);
