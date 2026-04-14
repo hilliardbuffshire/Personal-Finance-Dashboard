@@ -823,6 +823,7 @@ return(<>
 </>);
 }
 function ProjectionTab({currentBalance,setCB,savingsGoal,setSG,projMonths,setPM,projData,milestones,totalInc,totalExp,totalDPay}){
+const fmt=v=>v>=1000000?`$${(v/1000000).toFixed(1)}M`:v>=1000?`$${(v/1000).toFixed(0)}K`:`$${Math.round(v)}`;
 const [showTable,setShowTable]=useState(false);
 const netFlow=totalInc-totalExp-totalDPay;
 const tStep=projMonths<=24?1:projMonths<=60?3:6;
