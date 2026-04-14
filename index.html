@@ -492,7 +492,7 @@ const highDebt=debts.find(d=>d.interestRate>=15);
 if(totalInc===0&&expenses.length===0&&debts.length===0)
   return{emoji:'🌱',msg:'수입·지출·부채 항목을 입력하면 맞춤 재무 분석이 시작돼요!',color:'#6366f1',bg:'#ede9fe'};
 if(netFlow<0)
-  return{emoji:'🚨',msg:`이번 달 ${$(-netFlow)} 초과 지출 중이에요. 지출 항목을 한번 점검해봐요.`,color:'#dc2626',bg:'#fef2f2',sub:'가장 큰 지출 항목부터 줄여보세요'};
+  return{emoji:'🚨',msg:`이번 달 ${$$(-netFlow)} 초과 지출 중이에요. 지출 항목을 한번 점검해봐요.`,color:'#dc2626',bg:'#fef2f2',sub:'가장 큰 지출 항목부터 줄여보세요'};
 if(highDebt)
   return{emoji:'💸',msg:`${highDebt.name} 이자율 ${highDebt.interestRate}%로 높아요! 우선 상환을 고려해보세요.`,color:'#d97706',bg:'#fffbeb',sub:'고금리 부채를 먼저 갚으면 이자 절감 효과가 커요'};
 if(savR>=30)
@@ -500,9 +500,9 @@ if(savR>=30)
 if(savR>=20)
   return{emoji:'💪',msg:`저축률 ${savR.toFixed(0)}%로 훈륭해요! 목표를 향해 착실히 달려가고 있어요.`,color:'#2563eb',bg:'#eff6ff'};
 if(savR>=10)
-  return{emoji:'👍',msg:`저축률 ${savR.toFixed(0)}% 유지 중! 조금 더 늘리면 훨씬 빨리 목표에 도달해요.`,color:'#7c3aed',bg:'#f5f3ff',sub:topCat?`${topCat.name} 지출(${$(topCat.amount)})을 조금 줄여보는 건 어떨까요?`:undefined};
+  return{emoji:'👍',msg:`저축률 ${savR.toFixed(0)}% 유지 중! 조금 더 늘리면 훨씬 빨리 목표에 도달해요.`,color:'#7c3aed',bg:'#f5f3ff',sub:topCat?`${topCat.name} 지출(${$$(topCat.amount)})을 조금 줄여보는 건 어떨까요?`:undefined};
 if(savR>0)
-  return{emoji:'💡',msg:`저축률 ${savR.toFixed(0)}%예요. 지출을 조금 줄이면 재무 성장이 빨라져요!`,color:'#d97706',bg:'#fffbeb',sub:topCat?`이번 달 ${topCat.name}에 ${$(topCat.amount)} 지출 중`:undefined};
+  return{emoji:'💡',msg:`저축률 ${savR.toFixed(0)}%예요. 지출을 조금 줄이면 재무 성장이 빨라져요!`,color:'#d97706',bg:'#fffbeb',sub:topCat?`이번 달 ${topCat.name}에 ${$$(topCat.amount)} 지출 중`:undefined};
 return{emoji:'⭐',msg:'재무 목표를 향해 한 걸음씩 나아가고 있어요. 화이팅!',color:'#6366f1',bg:'#ede9fe'};
 }
 function getLedgerInsight(mthInc,mthExp,mthNet,entries){
@@ -512,13 +512,13 @@ const catMap=entries.filter(t=>t.type==='expense').reduce((m,t)=>{m[t.category]=
 const topPair=Object.entries(catMap).sort((a,b)=>b[1]-a[1])[0];
 const savR=mthInc>0?(mthNet/mthInc)*100:0;
 if(mthNet<0)
-  return{emoji:'📊',msg:`이번 달 ${$(-mthNet)} 초과 지출이에요. 다음 달은 조금 조여볼까요?`,color:'#ef4444',bg:'#fef2f2',sub:topPair?`${topPair[0]}에 ${$(topPair[1])} 지출이 가장 많아요`:undefined};
+  return{emoji:'📊',msg:`이번 달 ${$$(-mthNet)} 초과 지출이에요. 다음 달은 조금 조여볼까요?`,color:'#ef4444',bg:'#fef2f2',sub:topPair?`${topPair[0]}에 ${$$(topPair[1])} 지출이 가장 많아요`:undefined};
 if(savR>=30)
-  return{emoji:'🎉',msg:`이번 달 저축률 ${savR.toFixed(0)}%! 정말 잘 관리하고 있어요. 칭찬해요!`,color:'#16a34a',bg:'#f0fdf4',sub:topPair?`가장 큰 지출: ${topPair[0]} ${$(topPair[1])}`:undefined};
+  return{emoji:'🎉',msg:`이번 달 저축률 ${savR.toFixed(0)}%! 정말 잘 관리하고 있어요. 칭찬해요!`,color:'#16a34a',bg:'#f0fdf4',sub:topPair?`가장 큰 지출: ${topPair[0]} ${$$(topPair[1])}`:undefined};
 if(savR>=15)
-  return{emoji:'😊',msg:`이번 달 순수익 ${$(mthNet)}! 착실한 소비 습관이에요.`,color:'#2563eb',bg:'#eff6ff',sub:topPair?`가장 큰 지출: ${topPair[0]} ${$(topPair[1])}`:undefined};
+  return{emoji:'😊',msg:`이번 달 순수익 ${$$(mthNet)}! 착실한 소비 습관이에요.`,color:'#2563eb',bg:'#eff6ff',sub:topPair?`가장 큰 지출: ${topPair[0]} ${$$(topPair[1])}`:undefined};
 if(mthNet>=0)
-  return{emoji:'👌',msg:`수지 균형을 맞추고 있어요. ${$(mthNet)} 남았어요!`,color:'#7c3aed',bg:'#f5f3ff',sub:topPair?`${topPair[0]}에 이번 달 ${$(topPair[1])} 지출`:undefined};
+  return{emoji:'👌',msg:`수지 균형을 맞추고 있어요. ${$$(mthNet)} 남았어요!`,color:'#7c3aed',bg:'#f5f3ff',sub:topPair?`${topPair[0]}에 이번 달 ${$$(topPair[1])} 지출`:undefined};
 return{emoji:'💪',msg:'가계부를 기록하는 것 자체가 재무 관리의 시작이에요!',color:'#6366f1',bg:'#ede9fe'};
 }
 function getInvestmentInsight(investments){
@@ -533,10 +533,10 @@ if(investments.length>=3&&types>=2)
 if(avgR>=15)
   return{emoji:'🚀',msg:`${best.name} 예상 수익률 ${best.expectedReturn}%! 공격적 투자 전략이에요.`,color:'#7c3aed',bg:'#f5f3ff',sub:'높은 수익에는 높은 리스크, 분산 투자도 고려해보세요'};
 if(avgR>=7)
-  return{emoji:'📈',msg:`평균 수익률 ${avgR.toFixed(1)}%로 안정적인 투자를 하고 있어요!`,color:'#2563eb',bg:'#eff6ff',sub:`총 투자 잔고 ${$(totalBal)}`};
+  return{emoji:'📈',msg:`평균 수익률 ${avgR.toFixed(1)}%로 안정적인 투자를 하고 있어요!`,color:'#2563eb',bg:'#eff6ff',sub:`총 투자 잔고 ${$$(totalBal)}`};
 if(investments.length===1)
-  return{emoji:'💡',msg:'한 종목에만 투자 중이에요. 다양한 자산으로 분산하면 리스크가 줄어요!',color:'#d97706',bg:'#fffbeb',sub:`현재 ${investments[0].name} ${$(investments[0].balance)}`};
-return{emoji:'💰',msg:`총 ${$(totalBal)} 투자 중이에요. 꼼준히 늘려가면 복리 효과가 커져요!`,color:'#4f46e5',bg:'#eef2ff'};
+  return{emoji:'💡',msg:'한 종목에만 투자 중이에요. 다양한 자산으로 분산하면 리스크가 줄어요!',color:'#d97706',bg:'#fffbeb',sub:`현재 ${investments[0].name} ${$$(investments[0].balance)}`};
+return{emoji:'💰',msg:`총 ${$$(totalBal)} 투자 중이에요. 꼼준히 늘려가면 복리 효과가 커져요!`,color:'#4f46e5',bg:'#eef2ff'};
 }
 function OverviewTab({incomes,setInc,expenses,setExp,debts,setDbt,totalInc,totalExp,totalDPay,netFlow,transactions,theme}){
 const [ap,setAp]=useState('income');
