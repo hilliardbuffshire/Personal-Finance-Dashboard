@@ -172,6 +172,7 @@ const THEMES = [{ id:'royal',    name:'로얄 퍼플', dot:'#c9a84c',pageBg:'#f5
 const CAT_LIST=['주거','식비','교통','의료','교육','쇼핑','여가','기타'];
 let _uid=500; const gid=()=>++_uid;
 const $$=v=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(v??0);
+const fmt=v=>v>=1000000?`$${(v/1000000).toFixed(1)}M`:v>=1000?`$${(v/1000).toFixed(0)}K`:`$${Math.round(v)}`;
 const monthKey=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 const monthLabel=k=>{const[y,m]=k.split('-');const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return`${mn[+m-1]} ${y}`;};
 const prevMonth=k=>{const[y,m]=k.split('-').map(Number);return m===1?`${y-1}-12`:`${y}-${String(m-1).padStart(2,'0')}`;};
@@ -823,7 +824,6 @@ return(<>
 </>);
 }
 function ProjectionTab({currentBalance,setCB,savingsGoal,setSG,projMonths,setPM,projData,milestones,totalInc,totalExp,totalDPay}){
-const fmt=v=>v>=1000000?`$${(v/1000000).toFixed(1)}M`:v>=1000?`$${(v/1000).toFixed(0)}K`:`$${Math.round(v)}`;
 const [showTable,setShowTable]=useState(false);
 const netFlow=totalInc-totalExp-totalDPay;
 const tStep=projMonths<=24?1:projMonths<=60?3:6;
