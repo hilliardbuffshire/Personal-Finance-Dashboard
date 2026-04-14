@@ -1356,17 +1356,15 @@ boxShadow:`0 3px 14px ${_m.c}18`,position:'relative',overflow:'hidden'}}>
 {showCashAccts&&(
 <div style={{background:'#f8fafc',borderRadius:10,padding:'10px 10px 8px',border:'1px solid #e5e7eb',marginBottom:4}}>
 <div style={{fontSize:13,fontWeight:700,color:'#374151',marginBottom:6}}>🏦 계좌별 잔고</div>
-{cashAccounts.map(a=>{
-const aid=a.id;
-return(
-<div key={aid} style={{display:'flex',gap:4,marginBottom:5,alignItems:'center'}}>
-<input type="text" value={a.name} onChange={e=>{const v=e.target.value;setCashAccts(p=>p.map(x=>x.id===aid?{...x,name:v}:x));}} placeholder="계좌명 (예: 국민은행 적금)" style={{flex:1,border:'1px solid #e5e7eb',borderRadius:7,padding:'5px 8px',fontSize:13,outline:'none'}}/>
-<input type="number" value={a.balance} onFocus={e=>e.target.select()} onChange={e=>{const v=parseFloat(e.target.value)||0;setCashAccts(p=>p.map(x=>x.id===aid?{...x,balance:v}:x));}} style={{width:88,border:'1px solid #e5e7eb',borderRadius:7,padding:'5px 8px',fontSize:13,outline:'none'}}/>
-<button onClick={()=>setCashAccts(p=>p.filter(x=>x.id!==aid))} style={{color:'#f87171',background:'none',border:'none',padding:2,cursor:'pointer',display:'flex',flexShrink:0}}><IcoTrash s={14}/></button>
+{cashAccounts.map((a,idx)=>(
+<div key={idx} style={{display:'flex',gap:4,marginBottom:5,alignItems:'center'}}>
+<input type="text" value={a.name} onChange={e=>{const v=e.target.value;setCashAccts(p=>p.map((x,i)=>i===idx?{...x,name:v}:x));}} placeholder="계좌명 (예: 국민은행 적금)" style={{flex:1,border:'1px solid #e5e7eb',borderRadius:7,padding:'5px 8px',fontSize:13,outline:'none'}}/>
+<input type="number" value={a.balance} onFocus={e=>e.target.select()} onChange={e=>{const v=parseFloat(e.target.value)||0;setCashAccts(p=>p.map((x,i)=>i===idx?{...x,balance:v}:x));}} style={{width:88,border:'1px solid #e5e7eb',borderRadius:7,padding:'5px 8px',fontSize:13,outline:'none'}}/>
+<button onClick={()=>setCashAccts(p=>p.filter((_,i)=>i!==idx))} style={{color:'#f87171',background:'none',border:'none',padding:2,cursor:'pointer',display:'flex',flexShrink:0}}><IcoTrash s={14}/></button>
 </div>
-);})}
+))}
 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:6}}>
-<button onClick={()=>{const newId=Date.now()+Math.random();setCashAccts(p=>[...p,{id:newId,name:'',balance:0}]);}} style={{fontSize:13,color:theme.tabActive,background:'none',border:`1px dashed ${theme.tabBorder}`,borderRadius:7,padding:'4px 10px',cursor:'pointer',fontWeight:600}}>+ 계좌 추가</button>
+<button onClick={()=>setCashAccts(p=>[...p,{name:'',balance:0}])} style={{fontSize:13,color:theme.tabActive,background:'none',border:`1px dashed ${theme.tabBorder}`,borderRadius:7,padding:'4px 10px',cursor:'pointer',fontWeight:600}}>+ 계좌 추가</button>
 <span style={{fontSize:13,color:'#9ca3af',cursor:'pointer'}} onClick={()=>{setCashAccts([]);setShowCashAccts(false);}}>단일 잔고로 전환</span>
 </div>
 </div>
