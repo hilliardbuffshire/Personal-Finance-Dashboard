@@ -29,7 +29,40 @@
       .milestone-grid{grid-template-columns:repeat(2,1fr)!important}
       .tab-label-long{display:none}
     }
-  </style>
+  /* ── AI Advisor ── */
+.ai-bubble{position:fixed;bottom:24px;right:24px;width:58px;height:58px;border-radius:50%;
+background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);
+box-shadow:0 4px 20px rgba(99,102,241,.45);display:flex;align-items:center;
+justify-content:center;cursor:pointer;border:none;z-index:990;font-size:26px;
+transition:transform .2s,box-shadow .2s}
+.ai-bubble:hover{transform:scale(1.12);box-shadow:0 6px 28px rgba(99,102,241,.6)}
+.ai-bubble .ai-badge{position:absolute;top:-2px;right:-2px;background:#ef4444;color:#fff;
+font-size:10px;font-weight:900;border-radius:50%;width:18px;height:18px;
+display:flex;align-items:center;justify-content:center}
+.ai-panel{position:fixed;bottom:0;right:20px;width:400px;height:560px;background:#fff;
+border-radius:18px 18px 0 0;box-shadow:0 -6px 32px rgba(0,0,0,0.18);
+display:flex;flex-direction:column;z-index:991;
+transform:translateY(110%);transition:transform .35s cubic-bezier(.4,0,.2,1)}
+.ai-panel.ai-open{transform:translateY(0)}
+.ai-panel-hdr{display:flex;align-items:center;gap:10px;padding:14px 16px;
+background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:18px 18px 0 0;flex-shrink:0}
+.ai-msg-user{background:#6366f1;color:#fff;border-radius:16px 16px 4px 16px;
+padding:10px 14px;font-size:13px;margin-left:32px;word-break:break-word;line-height:1.5}
+.ai-msg-ai{background:#f1f5f9;color:#1e293b;border-radius:4px 16px 16px 16px;
+padding:10px 14px;font-size:13px;margin-right:32px;word-break:break-word;
+white-space:pre-wrap;line-height:1.6}
+.ai-typing{display:flex;gap:5px;align-items:center;padding:10px 14px;background:#f1f5f9;
+border-radius:4px 16px 16px 16px;margin-right:32px;width:fit-content}
+.ai-typing span{width:7px;height:7px;background:#94a3b8;border-radius:50%;
+animation:aiTyping 1.2s infinite}.ai-typing span:nth-child(2){animation-delay:.2s}
+.ai-typing span:nth-child(3){animation-delay:.4s}
+@keyframes aiTyping{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-6px);opacity:1}}
+.ai-quick-btn{background:#ede9fe;color:#6366f1;border:none;border-radius:20px;
+padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;
+transition:background .15s}.ai-quick-btn:hover{background:#ddd6fe}
+@media(max-width:768px){.ai-panel{width:100%;right:0;border-radius:16px 16px 0 0;height:72vh}
+.ai-bubble{bottom:16px;right:16px}}
+</style>
 </head>
 <body>
 <div id="loading">
@@ -816,6 +849,188 @@ function ProjectionTab({currentBalance,setCB,savingsGoal,setSG,projMonths,setPM,
 /* ââââââââââââââââââââââââââââââââââââââââââ
    12. DASHBOARD (state + layout)
 ââââââââââââââââââââââââââââââââââââââââââ */
+/* ════════════════════════════════════════
+   AI ADVISOR COMPONENT
+════════════════════════════════════════ */
+const AI_PROVIDERS=[
+  {id:'gemini',label:'Gemini (Google)',free:true,placeholder:'AIza...'},
+  {id:'grok',  label:'Grok (xAI)',    free:false,placeholder:'xai-...'},
+  {id:'openai',label:'ChatGPT (OpenAI)',free:false,placeholder:'sk-...'},
+];
+function AIAdvisor({netWorth,totalInc,totalExp,netFlow,totalAssets,totalDAmt,
+  totalInvBal,currentBalance,incomes,expenses,debts,investments,theme}){
+const [open,setOpen]=useState(false);
+const [messages,setMessages]=useState([]);
+const [input,setInput]=useState('');
+const [loading,setLoading]=useState(false);
+const [provider,setProv]=useState(()=>LS.get('hb_ai_prov','gemini'));
+const [apiKey,setApiKey]=useState(()=>LS.get('hb_ai_key',''));
+const [showCfg,setShowCfg]=useState(false);
+const [unread,setUnread]=useState(0);
+const endRef=useRef(null);
+const inputRef=useRef(null);
+useEffect(()=>{ endRef.current?.scrollIntoView({behavior:'smooth'}); },[messages,loading]);
+useEffect(()=>{ if(open){setUnread(0);setTimeout(()=>inputRef.current?.focus(),200);} },[open]);
+const saveKey=(k,p)=>{ LS.set('hb_ai_key',k); LS.set('hb_ai_prov',p); };
+
+const buildContext=()=>`당신은 Hilliard Buffshire의 개인 재무 AI 어드바이저입니다.
+현재 재무 현황:
+• 순자산(Net Worth): ${$$(netWorth)} (자산 ${$$(totalAssets)} − 부채 ${$$(totalDAmt)})
+• 현금 잔고: ${$$(currentBalance)}
+• 투자 자산: ${$$(totalInvBal)}
+• 월 수입: ${$$(totalInc)} / 월 지출: ${$$(totalExp)} / 월 순현금흐름: ${$$(netFlow)}
+• 수입: ${incomes.length?incomes.map(i=>i.name+' '+$$(i.type==='annual'?i.amount/12:i.amount)+'/월').join(', '):'없음'}
+• 지출: ${expenses.length?expenses.map(e=>e.name+' '+$$(e.amount)).join(', '):'없음'}
+• 부채: ${debts.length?debts.map(d=>d.name+' 잔액'+$$(d.totalAmount)+' 월상환'+$$(d.monthlyPayment)+' 금리'+d.interestRate+'%').join(', '):'없음'}
+• 투자: ${investments.length?investments.map(i=>i.name+' '+$$(i.balance)+' 기대수익'+i.expectedReturn+'%').join(', '):'없음'}
+위 데이터를 기반으로 실용적이고 구체적인 재무 조언을 한국어로 제공하세요. 응답은 간결하고 핵심 위주로 해주세요.`;
+
+const send=async(text)=>{
+  const q=(text||input).trim();
+  if(!q||loading) return;
+  if(!apiKey){setShowCfg(true);return;}
+  setMessages(p=>[...p,{role:'user',content:q}]);
+  setInput('');
+  setLoading(true);
+  try{
+    let reply='';
+    const ctx=buildContext();
+    if(provider==='gemini'){
+      const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        {method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({contents:[{role:'user',parts:[{text:ctx+'\n\n질문: '+q}]}],
+        generationConfig:{temperature:0.7,maxOutputTokens:1024}})});
+      const d=await r.json();
+      if(d.error) throw new Error(d.error.message);
+      reply=d.candidates?.[0]?.content?.parts?.[0]?.text||'응답 없음';
+    } else if(provider==='grok'){
+      const r=await fetch('https://api.x.ai/v1/chat/completions',
+        {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+        body:JSON.stringify({model:'grok-beta',messages:[{role:'system',content:ctx},{role:'user',content:q}],
+        temperature:0.7,max_tokens:1024})});
+      const d=await r.json();
+      if(d.error) throw new Error(typeof d.error==='string'?d.error:d.error.message);
+      reply=d.choices?.[0]?.message?.content||'응답 없음';
+    } else {
+      const r=await fetch('https://api.openai.com/v1/chat/completions',
+        {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+        body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'system',content:ctx},{role:'user',content:q}],
+        temperature:0.7,max_tokens:1024})});
+      const d=await r.json();
+      if(d.error) throw new Error(d.error.message);
+      reply=d.choices?.[0]?.message?.content||'응답 없음';
+    }
+    setMessages(p=>[...p,{role:'ai',content:reply}]);
+    if(!open) setUnread(n=>n+1);
+  }catch(e){
+    setMessages(p=>[...p,{role:'ai',content:'❌ '+e.message+'\n\nAPI 키와 공급자를 확인해주세요. ⚙️ 설정에서 변경 가능합니다.'}]);
+  } finally{ setLoading(false); }
+};
+
+const quickQs=['📊 재무 현황 종합 분석','💡 저축률 높이는 방법','📈 투자 전략 추천',
+  '🔓 부채 상환 최적 순서','🎯 순자산 $100,000 달성 플랜','⚠️ 가장 시급한 재무 리스크'];
+
+const curProv=AI_PROVIDERS.find(p=>p.id===provider)||AI_PROVIDERS[0];
+
+return <>
+{/* 플로팅 버튼 */}
+<button className="ai-bubble" onClick={()=>setOpen(o=>!o)} title="AI 재무 어드바이저">
+  {open?'✕':'🤖'}
+  {unread>0&&!open&&<span className="ai-badge">{unread}</span>}
+</button>
+
+{/* AI 패널 */}
+<div className={'ai-panel'+(open?' ai-open':'')}>
+  {/* 헤더 */}
+  <div className="ai-panel-hdr">
+    <span style={{fontSize:22}}>🤖</span>
+    <div style={{flex:1}}>
+      <div style={{color:'#fff',fontWeight:800,fontSize:14,letterSpacing:.5}}>AI 재무 어드바이저</div>
+      <div style={{color:'rgba(255,255,255,.65)',fontSize:10}}>{curProv.label} · {apiKey?'연결됨':'API 키 필요'}</div>
+    </div>
+    <button onClick={()=>setShowCfg(s=>!s)} style={{background:'rgba(255,255,255,.2)',border:'none',borderRadius:8,
+      padding:'4px 8px',color:'#fff',fontSize:12,cursor:'pointer'}}>⚙️</button>
+    <button onClick={()=>setOpen(false)} style={{background:'rgba(255,255,255,.2)',border:'none',borderRadius:8,
+      padding:'4px 8px',color:'#fff',fontSize:12,cursor:'pointer',marginLeft:4}}>✕</button>
+  </div>
+
+  {/* 설정 패널 */}
+  {showCfg&&<div style={{padding:'12px 16px',borderBottom:'1px solid #e2e8f0',background:'#fafafa',flexShrink:0}}>
+    <div style={{fontSize:11,fontWeight:700,color:'#6b7280',marginBottom:8}}>AI 공급자 선택</div>
+    <div style={{display:'flex',gap:6,marginBottom:10,flexWrap:'wrap'}}>
+      {AI_PROVIDERS.map(p=>(
+        <button key={p.id} onClick={()=>setProv(p.id)}
+          style={{padding:'4px 10px',borderRadius:20,border:'2px solid',fontSize:11,fontWeight:700,cursor:'pointer',
+          background:provider===p.id?'#6366f1':'#fff',
+          color:provider===p.id?'#fff':'#6366f1',borderColor:'#6366f1'}}>
+          {p.label}{p.free&&' ✦무료'}
+        </button>
+      ))}
+    </div>
+    <div style={{fontSize:11,fontWeight:700,color:'#6b7280',marginBottom:4}}>API 키 ({curProv.placeholder})</div>
+    <div style={{display:'flex',gap:6}}>
+      <input type="password" value={apiKey} onChange={e=>setApiKey(e.target.value)}
+        placeholder={curProv.placeholder} style={{flex:1,border:'1px solid #d1d5db',borderRadius:8,
+        padding:'6px 10px',fontSize:12,outline:'none'}}/>
+      <button onClick={()=>{saveKey(apiKey,provider);setShowCfg(false);}}
+        style={{background:'#6366f1',color:'#fff',border:'none',borderRadius:8,
+        padding:'6px 12px',fontSize:12,fontWeight:700,cursor:'pointer'}}>저장</button>
+    </div>
+    <div style={{fontSize:10,color:'#9ca3af',marginTop:6}}>
+      Gemini 무료키: <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" style={{color:'#6366f1'}}>aistudio.google.com</a>
+      &nbsp;·&nbsp;Grok: <a href="https://console.x.ai" target="_blank" rel="noopener" style={{color:'#6366f1'}}>console.x.ai</a>
+    </div>
+  </div>}
+
+  {/* 채팅 영역 */}
+  <div style={{flex:1,overflowY:'auto',padding:'12px 14px',display:'flex',flexDirection:'column',gap:10}}>
+    {messages.length===0&&<div style={{textAlign:'center',color:'#94a3b8',fontSize:12,marginTop:20}}>
+      <div style={{fontSize:36,marginBottom:8}}>💬</div>
+      <div style={{fontWeight:700,marginBottom:4}}>AI 재무 어드바이저에게 물어보세요</div>
+      <div style={{fontSize:11}}>포트폴리오 분석, 절약 팁, 투자 전략 등</div>
+    </div>}
+    {messages.map((m,i)=>(
+      <div key={i} style={{display:'flex',flexDirection:'column',
+        alignItems:m.role==='user'?'flex-end':'flex-start'}}>
+        <div style={{fontSize:10,color:'#9ca3af',marginBottom:3,
+          paddingLeft:m.role==='user'?0:4,paddingRight:m.role==='user'?4:0}}>
+          {m.role==='user'?'나':'🤖 AI'}
+        </div>
+        <div className={m.role==='user'?'ai-msg-user':'ai-msg-ai'}>{m.content}</div>
+      </div>
+    ))}
+    {loading&&<div style={{display:'flex',flexDirection:'column',alignItems:'flex-start'}}>
+      <div style={{fontSize:10,color:'#9ca3af',marginBottom:3,paddingLeft:4}}>🤖 AI</div>
+      <div className="ai-typing"><span/><span/><span/></div>
+    </div>}
+    <div ref={endRef}/>
+  </div>
+
+  {/* 빠른 질문 버튼 */}
+  {messages.length===0&&<div style={{padding:'0 12px 8px',display:'flex',gap:6,flexWrap:'wrap',flexShrink:0}}>
+    {quickQs.map((q,i)=>(
+      <button key={i} className="ai-quick-btn" onClick={()=>send(q)}>{q}</button>
+    ))}
+  </div>}
+
+  {/* 입력창 */}
+  <div style={{padding:'10px 12px',borderTop:'1px solid #e2e8f0',display:'flex',gap:8,flexShrink:0}}>
+    <input ref={inputRef} value={input} onChange={e=>setInput(e.target.value)}
+      onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}}
+      placeholder={apiKey?'재무 질문을 입력하세요... (Enter)':'⚙️ 먼저 API 키를 설정하세요'}
+      style={{flex:1,border:'1.5px solid #e2e8f0',borderRadius:12,padding:'8px 12px',
+      fontSize:13,outline:'none',fontFamily:'inherit'}}/>
+    <button onClick={()=>send()} disabled={loading||!input.trim()}
+      style={{background:loading||!input.trim()?'#e2e8f0':'#6366f1',color:loading||!input.trim()?'#94a3b8':'#fff',
+      border:'none',borderRadius:12,padding:'8px 14px',fontSize:14,
+      fontWeight:800,cursor:loading||!input.trim()?'default':'pointer',transition:'all .15s'}}>
+      {loading?'⏳':'➤'}
+    </button>
+  </div>
+</div>
+</>;
+}
+
 function Dashboard({user,onLogout}){
   const K=k=>`hb_${user}_${k}`;
   const [tab,setTab]=useState('overview');
@@ -973,6 +1188,11 @@ function Dashboard({user,onLogout}){
           Hilliard Buffshire Personal Finance Dashboard Â· ë°ì´í°ë ë¸ë¼ì°ì ì ì ì¥ë©ëë¤
         </div>
       </div>
+<AIAdvisor
+  netWorth={netWorth} totalInc={totalInc} totalExp={totalExp} netFlow={netFlow}
+  totalAssets={totalAssets} totalDAmt={totalDAmt} totalInvBal={totalInvBal}
+  currentBalance={currentBalance} incomes={incomes} expenses={expenses}
+  debts={debts} investments={investments} theme={theme}/>
     </div>
   );
 }
