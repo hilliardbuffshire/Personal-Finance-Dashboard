@@ -702,7 +702,7 @@ background:t.auto?'#f0f9ff':t.type==='income'?'#f0fdf4':'#fef2f2',
 border:t.auto?'1px dashed #bfdbfe':'none',marginBottom:4}}>
 <div>
 <span style={{fontSize:15,fontWeight:600,color:t.auto?'#374151':'#1f2937'}}>{t.name}</span>
-<span style={{marginLeft:6,fontSize:13,background:'rgba(255,255,255,0.7)',padding:'1px 6px',borderRadius:20,color:'#6b7280'}}>{t.category}</span>
+{t.type==='expense'&&t.category&&<span style={{marginLeft:6,fontSize:13,background:'rgba(255,255,255,0.7)',padding:'1px 6px',borderRadius:20,color:'#6b7280'}}>{t.category}</span>}
 {t.auto&&<span style={{marginLeft:4,fontSize:12,background:'#dbeafe',padding:'1px 6px',borderRadius:20,color:'#1d4ed8',fontWeight:700}}>🔁 자동</span>}
 {t.isOneTime&&<span style={{marginLeft:4,fontSize:12,background:'#fef3c7',padding:'1px 5px',borderRadius:20,color:'#92400e'}}>1회</span>}
 </div>
@@ -832,9 +832,9 @@ return(
 <div style={{background:'white',borderRadius:14,padding:14,marginBottom:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
 <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}} className="stats-3">
 <div><label style={{fontSize:13,fontWeight:700,color:'#6b7280',display:'block',marginBottom:4,letterSpacing:1}}>현재 잔고 ($)</label>
-<input type="number" value={currentBalance} onChange={e=>setCB(parseFloat(e.target.value)||0)} style={{width:'100%',border:'2px solid #e5e7eb',borderRadius:10,padding:'8px 10px',fontSize:15,fontWeight:700,color:'#4f46e5'}}/></div>
+<input type="number" value={currentBalance} onFocus={e=>e.target.select()} onChange={e=>setCB(parseFloat(e.target.value)||0)} style={{width:'100%',border:'2px solid #e5e7eb',borderRadius:10,padding:'8px 10px',fontSize:15,fontWeight:700,color:'#4f46e5'}}/></div>
 <div><label style={{fontSize:13,fontWeight:700,color:'#6b7280',display:'block',marginBottom:4,letterSpacing:1}}>저축 목표 ($)</label>
-<input type="number" value={savingsGoal} onChange={e=>setSG(parseFloat(e.target.value)||0)} style={{width:'100%',border:'2px solid #e5e7eb',borderRadius:10,padding:'8px 10px',fontSize:15}}/></div>
+<input type="number" value={savingsGoal} onFocus={e=>e.target.select()} onChange={e=>setSG(parseFloat(e.target.value)||0)} style={{width:'100%',border:'2px solid #e5e7eb',borderRadius:10,padding:'8px 10px',fontSize:15}}/></div>
 <div><label style={{fontSize:13,fontWeight:700,color:'#6b7280',display:'block',marginBottom:4,letterSpacing:1}}>예측 기간</label>
 <select value={projMonths} onChange={e=>setPM(parseInt(e.target.value))} style={{width:'100%',border:'2px solid #e5e7eb',borderRadius:10,padding:'8px 10px',fontSize:16,background:'white'}}>
 <option value={12}>1년</option><option value={24}>2년</option><option value={36}>3년</option>
@@ -1095,6 +1095,8 @@ const [expenses,setExp]=useState(()=>LS.get(CK('expenses'),DEF_EXP));
 const [debts,setDbt]=useState(()=>LS.get(CK('debts'),DEF_DBT));
 const [investments,setInv]=useState(()=>LS.get(CK('investments'),DEF_INV));
 const [transactions,setTx]=useState(()=>LS.get(CK('transactions'),DEF_TXN));
+const [cashAccounts,setCashAccts]=useState(()=>LS.get(CK('cashAccounts'),[]));
+const [showCashAccts,setShowCashAccts]=useState(false);
 const [syncStatus,setSyncStatus]=useState(''); // '', 'saving', 'saved', 'error'
 const [showThemePicker,setShowThemePicker]=useState(false);
 const saveEnabled = useRef(false);
@@ -1113,6 +1115,7 @@ if(d.expenses) setExp(d.expenses);
 if(d.debts) setDbt(d.debts);
 if(d.investments) setInv(d.investments);
 if(d.transactions) setTx(d.transactions);
+if(d.cashAccounts) setCashAccts(d.cashAccounts);
 }
 })
 .catch(e=>console.warn('Firestore load:', e))
@@ -1130,19 +1133,20 @@ LS.set(CK('expenses'),expenses);
 LS.set(CK('debts'),debts);
 LS.set(CK('investments'),investments);
 LS.set(CK('transactions'),transactions);
+LS.set(CK('cashAccounts'),cashAccounts);
 if(!db||!user) return;
 setSyncStatus('saving');
 if(saveTimer.current) clearTimeout(saveTimer.current);
 saveTimer.current=setTimeout(()=>{
 db.collection('users').doc(user).set({
 balance:currentBalance, goal:savingsGoal, months:projMonths,
-incomes, expenses, debts, investments, transactions,
+incomes, expenses, debts, investments, transactions, cashAccounts,
 updatedAt: new Date().toISOString()
 })
 .then(()=>setSyncStatus('saved'))
 .catch(e=>{ console.warn('Firestore save:', e); setSyncStatus('error'); });
 }, 2000);
-},[currentBalance,savingsGoal,projMonths,incomes,expenses,debts,investments,transactions]);
+},[currentBalance,savingsGoal,projMonths,incomes,expenses,debts,investments,transactions,cashAccounts]);
 useEffect(()=>{
 document.body.style.background=theme.pageBg;
 document.documentElement.style.setProperty('--focus-color',theme.focus);
@@ -1152,11 +1156,12 @@ const totalExp=useMemo(()=>expenses.reduce((s,e)=>s+e.amount,0),[expenses]);
 const totalDPay=useMemo(()=>debts.reduce((s,d)=>s+d.monthlyPayment,0),[debts]);
 const totalDAmt=useMemo(()=>debts.reduce((s,d)=>s+d.totalAmount,0),[debts]);
 const totalInvBal=useMemo(()=>investments.reduce((s,i)=>s+i.balance,0),[investments]);
-const totalAssets=currentBalance+totalInvBal;
+const effectiveBalance=useMemo(()=>cashAccounts.length>0?cashAccounts.reduce((s,a)=>s+a.balance,0):currentBalance,[cashAccounts,currentBalance]);
+const totalAssets=effectiveBalance+totalInvBal;
 const netWorth=totalAssets-totalDAmt;
 const netFlow=totalInc-totalExp-totalDPay;
 const projData=useMemo(()=>{
-let bal=currentBalance;
+let bal=effectiveBalance;
 let ds=debts.map(d=>({...d,rem:d.totalAmount}));
 let ivs=investments.map(i=>({...i,bal:i.balance}));
 const rows=[];
@@ -1195,7 +1200,7 @@ const logout=()=>{ onLogout(); };
 const reset=()=>{
 if(!confirm(`${displayName}의 모든 데이터를 초기화할까요?`))return;
 setCB(0);setSG(50000);setPM(60);
-setInc(DEF_INC);setExp(DEF_EXP);setDbt(DEF_DBT);setInv(DEF_INV);setTx(DEF_TXN);
+setInc(DEF_INC);setExp(DEF_EXP);setDbt(DEF_DBT);setInv(DEF_INV);setTx(DEF_TXN);setCashAccts([]);
 };
 const TABS=[
 {k:'overview',icon:'🏠',label:'대시보드'},
@@ -1208,7 +1213,7 @@ const cards=[
 {l:'월 지출 합계',v:$$(totalExp+totalDPay),sub:`고정 ${$$(totalExp)} + 부채 ${$$(totalDPay)}`,c:'#ef4444',border:'#fecaca'},
 {l:'월 순 현금흐름',v:(netFlow>=0?'+':'')+$$(netFlow),sub:netFlow>=0?'💚 저축 가능':'⚠️ 지출 초과',c:netFlow>=0?'#3b82f6':'#f97316',border:netFlow>=0?'#bfdbfe':'#fed7aa'},
 {l:'투자 잔고',v:$$(totalInvBal),sub:`${investments.length}개 계좌`,c:'#8b5cf6',border:'#ddd6fe'},
-{l:'총 자산',v:$$(totalAssets),sub:`현금 ${$$(currentBalance)} + 투자 ${$$(totalInvBal)}`,c:'#4f46e5',border:'#ddd6fe'},
+{l:'총 자산',v:$$(totalAssets),sub:`현금 ${$$(effectiveBalance)} + 투자 ${$$(totalInvBal)}`,c:'#4f46e5',border:'#ddd6fe'},
 {l:'순자산 (Net Worth)',v:$$(netWorth),sub:`총자산 - 부채 ${$$(totalDAmt)}`,c:netWorth>=0?theme.tabActive:'#ef4444',border:netWorth>=0?'#fef3c7':'#fecaca'},
 ];
 return(
@@ -1264,8 +1269,8 @@ borderRadius:20,color:theme.accent,fontSize:15,fontWeight:700}}>
 {syncStatus==='saving'?'⏳ 동기화 중':syncStatus==='saved'?'✓ 저장됨':'⚠️ 저장 오류'}
 </span>
 )}
-<button onClick={reset} style={{padding:'6px 10px',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:20,color:'#94a3b8',fontSize:13,fontWeight:600}}>초기화</button>
-<button onClick={logout} style={{display:'flex',alignItems:'center',gap:4,padding:'6px 12px',background:'rgba(255,255,255,0.08)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:20,color:'#94a3b8',fontSize:14,fontWeight:600}}>
+<button onClick={reset} style={{padding:'6px 10px',background:'rgba(255,255,255,0.13)',border:'1px solid rgba(255,255,255,0.28)',borderRadius:20,color:'rgba(255,255,255,0.88)',fontSize:13,fontWeight:600}}>초기화</button>
+<button onClick={logout} style={{display:'flex',alignItems:'center',gap:4,padding:'6px 12px',background:'rgba(255,255,255,0.13)',border:'1px solid rgba(255,255,255,0.28)',borderRadius:20,color:'rgba(255,255,255,0.92)',fontSize:14,fontWeight:600}}>
 <IcoOut s={13}/>로그아웃
 </button>
 </div>
@@ -1274,7 +1279,7 @@ borderRadius:20,color:theme.accent,fontSize:15,fontWeight:700}}>
 {}
 <div style={{background:theme.nwGrad,padding:'10px 20px',borderBottom:'1px solid rgba(255,255,255,0.1)'}}>
 <div style={{maxWidth:1120,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
-<span style={{color:'rgba(255,255,255,0.6)',fontSize:14}}>순자산 (Net Worth)</span>
+<span style={{color:'rgba(255,255,255,0.9)',fontSize:14,fontWeight:600}}>순자산 (Net Worth)</span>
 <span style={{color:netWorth>=0?theme.nwPos:'#f87171',fontSize:22,fontWeight:900,letterSpacing:1}}>{$$(netWorth)}</span>
 <span style={{color:'rgba(255,255,255,0.4)',fontSize:13}}>= {$$(totalAssets)} − {$$(totalDAmt)}</span>
 </div>
@@ -1339,15 +1344,42 @@ boxShadow:`0 3px 14px ${_m.c}18`,position:'relative',overflow:'hidden'}}>
 <span style={{fontWeight:900,fontSize:16,color:theme.tabActive}}>자산 입력 & 예측 미리보기</span>
 <span style={{fontSize:14,color:'#9ca3af',marginLeft:'auto',fontStyle:'italic'}}>입력하면 예측이 바로 자동 계산돼요 🔮</span>
 </div>
-<div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:10,alignItems:'flex-end'}} className="stats-3">
+<div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:10,alignItems:'flex-start'}} className="stats-3">
 <div>
-<label style={{fontSize:14,fontWeight:700,color:'#6b7280',display:'block',marginBottom:5}}>💰 현재 현금 잔고 ($)</label>
-<input type="number" value={currentBalance} onChange={e=>setCB(parseFloat(e.target.value)||0)}
-style={{width:'100%',border:`2px solid ${theme.tabBorder}`,borderRadius:10,padding:'9px 11px',fontSize:15,fontWeight:700,color:theme.tabActive,outline:'none'}}/>
+<label style={{fontSize:14,fontWeight:700,color:'#6b7280',display:'block',marginBottom:5}}>💰 현금 잔고 ($)</label>
+{cashAccounts.length>0?(
+<div>
+<div style={{border:`2px solid ${theme.tabBorder}`,borderRadius:10,padding:'9px 11px',display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
+<span style={{fontSize:15,fontWeight:800,color:theme.tabActive}}>{$$(effectiveBalance)}</span>
+<button onClick={()=>setShowCashAccts(p=>!p)} style={{fontSize:13,color:theme.tabActive,background:'none',border:`1px solid ${theme.tabBorder}`,borderRadius:6,padding:'2px 8px',cursor:'pointer',fontWeight:600}}>{showCashAccts?'접기 ▲':'편집 ▼'}</button>
+</div>
+{showCashAccts&&(
+<div style={{background:'#f8fafc',borderRadius:10,padding:'10px 10px 8px',border:'1px solid #e5e7eb',marginBottom:4}}>
+<div style={{fontSize:13,fontWeight:700,color:'#374151',marginBottom:6}}>🏦 계좌별 잔고</div>
+{cashAccounts.map(a=>(
+<div key={a.id} style={{display:'flex',gap:4,marginBottom:5,alignItems:'center'}}>
+<input type="text" value={a.name} onChange={e=>setCashAccts(p=>p.map(x=>x.id===a.id?{...x,name:e.target.value}:x))} placeholder="계좌명 (예: 국민은행 적금)" style={{flex:1,border:'1px solid #e5e7eb',borderRadius:7,padding:'5px 8px',fontSize:13,outline:'none'}}/>
+<input type="number" value={a.balance} onFocus={e=>e.target.select()} onChange={e=>setCashAccts(p=>p.map(x=>x.id===a.id?{...x,balance:parseFloat(e.target.value)||0}:x))} style={{width:88,border:'1px solid #e5e7eb',borderRadius:7,padding:'5px 8px',fontSize:13,outline:'none'}}/>
+<button onClick={()=>setCashAccts(p=>p.filter(x=>x.id!==a.id))} style={{color:'#f87171',background:'none',border:'none',padding:2,cursor:'pointer',display:'flex',flexShrink:0}}><IcoTrash s={14}/></button>
+</div>
+))}
+<div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:6}}>
+<button onClick={()=>setCashAccts(p=>[...p,{id:gid(),name:'',balance:0}])} style={{fontSize:13,color:theme.tabActive,background:'none',border:`1px dashed ${theme.tabBorder}`,borderRadius:7,padding:'4px 10px',cursor:'pointer',fontWeight:600}}>+ 계좌 추가</button>
+<span style={{fontSize:13,color:'#9ca3af',cursor:'pointer'}} onClick={()=>{setCashAccts([]);setShowCashAccts(false);}}>단일 잔고로 전환</span>
+</div>
+</div>
+)}
+</div>
+):(
+<div>
+<input type="number" value={currentBalance} onFocus={e=>e.target.select()} onChange={e=>setCB(parseFloat(e.target.value)||0)} style={{width:'100%',border:`2px solid ${theme.tabBorder}`,borderRadius:10,padding:'9px 11px',fontSize:15,fontWeight:700,color:theme.tabActive,outline:'none',marginBottom:4}}/>
+<button onClick={()=>{setCashAccts([{id:gid(),name:'',balance:currentBalance}]);setShowCashAccts(true);}} style={{fontSize:13,color:theme.tabActive,background:'none',border:'none',padding:0,cursor:'pointer',fontWeight:600}}>💳 계좌별로 나눠서 입력 →</button>
+</div>
+)}
 </div>
 <div>
 <label style={{fontSize:14,fontWeight:700,color:'#6b7280',display:'block',marginBottom:5}}>🎯 저축 목표 ($)</label>
-<input type="number" value={savingsGoal} onChange={e=>setSG(parseFloat(e.target.value)||0)}
+<input type="number" value={savingsGoal} onFocus={e=>e.target.select()} onChange={e=>setSG(parseFloat(e.target.value)||0)}
 style={{width:'100%',border:'2px solid #e5e7eb',borderRadius:10,padding:'9px 11px',fontSize:15,outline:'none'}}/>
 </div>
 <div>
