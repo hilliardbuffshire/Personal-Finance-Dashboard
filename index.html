@@ -1111,32 +1111,64 @@ const sr=totalInc>0?Math.round((netFlow/totalInc)*100):0;
 const qL=(q||'').toLowerCase();
 const topExp=expenses.length?[...expenses].sort((a,b)=>b.amount-a.amount)[0]:null;
 const hiDebt=debts.length?[...debts].sort((a,b)=>b.interestRate-a.interestRate)[0]:null;
+const totalLiquid=currentBalance+totalInvBal;
+const invR=totalLiquid>0?Math.round(totalInvBal/totalLiquid*100):0;
+const cashR=100-invR;
+const emgMo=totalExp>0?Math.floor(currentBalance/totalExp):0;
+const okEmg=emgMo>=3;
+const shannon=()=>{
+let s='⚡ 샤넌의 도깨비 (Shannon\'s Demon)\n변동성을 수익으로 전환하는 리밸런싱 전략:\n';
+s+='• 현재 배분 → 투자 '+invR+'% / 현금 '+cashR+'%\n';
+if(totalLiquid<500){s+='• 시드머니 부족 — 먼저 투자 원금 확보 후 적용';}
+else if(Math.abs(invR-50)>15){
+const adj=Math.round(Math.abs(totalLiquid*0.5-(invR>50?currentBalance:totalInvBal)));
+s+='• ⚠️ 리밸런싱 필요 ('+(invR>50?'현금 부족':'투자 부족')+')\n  조정액: '+$$(adj)+' '+(invR>50?'현금 확보 (수익 실현)':'투자 추가');}
+else{s+='• ✅ 배분 적정 — 월 1회 체크로 도깨비 효과 유지';}
+s+='\n📌 원리: 변동성↑ → 리밸런싱 수익↑ (자산 기대수익 0이어도 이론상 수익 창출)';
+return s;};
+const mpt=()=>{
+let m='📐 현대 포트폴리오 이론 (Markowitz MPT)\n상관관계 낮은 자산 분산 → 동일 위험 대비 수익 최대화:\n';
+if(!investments.length){m+='• 투자 없음 → 분산 시작 추천\n• 지수 ETF(S&P500) → 채권 ETF → 대안자산(금) 순';}
+else if(investments.length<3){m+='• 투자 '+investments.length+'개 — 자산군 추가 분산 권장\n• 주식/채권/원자재 3축 구성이 변동성 완충에 유리';}
+else{m+='• 투자 '+investments.length+'개 — 자산 간 상관관계 낮춤 여부 정기 점검 권장';}
+return m;};
 let r='';
-if(qL.includes('종합')||qL.includes('현황')||qL.includes('분석')){
-r='📊 재무 현황 분석\n\n• 월 수입: '+$$(totalInc)+' / 지출: '+$$(totalExp)+'\n• 순현금흐름: '+$$(netFlow)+' | 저축률: '+sr+'%\n• 순자산: '+$$(netWorth)+'\n\n';
-r+=sr>=20?'✅ 저축률 우수!':sr>=10?'💪 저축률 양호. 20% 목표 추천.':netFlow<0?'🚨 지출 수입 초과 — 즉시 지출 검토 필요!':'🌱 저축률 향상 여지 있음.';
-if(topExp) r+='\n\n💡 최대 지출: '+topExp.name+' '+$$(topExp.amount)+'/월';
-}else if(qL.includes('리스크')||qL.includes('위험')){
+if(qL.includes('샤넌')||qL.includes('shannon')||qL.includes('리밸런싱')){
+r=shannon()+'\n\n🛠 실전 4단계:\n1. 목표 비율 설정 (보수 40/60 · 중립 50/50 · 공격 70/30)\n2. 월 1회 비율 확인\n3. ±5% 이상 이탈 시 리밸런싱\n4. 세금 우대 계좌에서 먼저 조정';}
+else if(qL.includes('포트폴리오')||qL.includes('자산배분')||qL.includes('분산')){
+r=mpt()+'\n\n'+shannon();}
+else if(qL.includes('종합')||qL.includes('현황')||qL.includes('분석')){
+r='📊 재무 현황 종합 진단\n\n• 수입/지출: '+$$(totalInc)+'/'+$$(totalExp)+' | 저축률 '+sr+'%\n• 순자산: '+$$(netWorth)+' | 비상금 '+emgMo+'개월 '+(okEmg?'✅':'⚠️')+'\n\n';
+r+=(sr>=20?'✅ 저축률 우수':sr>=10?'💪 저축률 양호 — 20% 목표':netFlow<0?'🚨 지출 초과 — 구조 개선 우선':'🌱 저축률 개선 여지');
+r+='\n\n'+shannon()+'\n\n'+mpt();
+if(hiDebt) r+='\n\n🔓 데트 어벌랜치: '+hiDebt.name+' '+hiDebt.interestRate+'% 우선 상환 → 절감 이자를 투자 풀로';}
+else if(qL.includes('리스크')||qL.includes('위험')){
 const rs=[];
-if(netFlow<0) rs.push('• ⚠️ 지출 초과 (월 '+$$(-netFlow)+' 적자)');
-if(hiDebt&&hiDebt.interestRate>=15) rs.push('• ⚠️ 고금리 부채: '+hiDebt.name+' '+hiDebt.interestRate+'%');
-if(currentBalance<totalExp*3) rs.push('• ⚠️ 비상금 부족 (권장 '+$$(totalExp*3)+')');
-r='⚠️ 재무 리스크\n\n'+(rs.length?rs.join('\n'):'✅ 주요 리스크 없음');
-}else if(qL.includes('저축')){
-r='💰 저축률: '+sr+'%\n\n';
-r+=sr>=20?'🌟 훌륭합니다!':sr>=10?'💪 양호. 20% 목표 도전해보세요.':'⚠️ 개선 필요\n• 최대 지출 항목 점검\n• 자동이체로 선저축 실천';
-}else if(qL.includes('투자')){
-r='📈 투자 현황\n\n'+(investments.length?investments.map(i=>'• '+i.name+': '+$$(i.balance)+' ('+i.expectedReturn+'%)').join('\n')+'\n\n총: '+$$(totalInvBal):'투자 계좌 없음\n\n💡 S&P500 ETF 소액 정기투자 시작 추천');
-}else if(qL.includes('부채')||qL.includes('대출')||qL.includes('상환')){
-r='🔓 부채 현황\n\n'+(debts.length?debts.map(d=>'• '+d.name+': '+$$(d.totalAmount)+' | '+d.interestRate+'% | 월 '+$$(d.monthlyPayment)).join('\n')+'\n\n💡 고금리 부채 우선 상환 추천':'부채 없음 🎉');
-}else if(qL.includes('플랜')||qL.includes('목표')||qL.includes('100')){
-const need=100000-netWorth;
+if(netFlow<0) rs.push('🚨 지출 초과 '+$$(-netFlow)+'/월');
+if(!okEmg) rs.push('⚠️ 비상금 '+emgMo+'개월 (목표 3~6개월: '+$$(totalExp*3)+'~'+$$(totalExp*6)+')');
+if(hiDebt&&hiDebt.interestRate>=15) rs.push('⚠️ 고금리 부채 '+hiDebt.name+' '+hiDebt.interestRate+'%');
+if(invR>85&&totalLiquid>2000) rs.push('⚠️ 현금 과소 — 샤넌 리밸런싱 시 유동성 위기 가능');
+if(investments.length===1) rs.push('⚠️ 단일 자산 집중 — MPT 분산 필요');
+r='⚠️ 리스크 진단\n\n'+(rs.length?rs.join('\n'):'✅ 주요 리스크 없음 — 샤넌 리밸런싱으로 최적화 단계');}
+else if(qL.includes('저축')){
+r='💰 저축 전략\n\n저축률 '+sr+'%\n\n';
+r+=sr>=20?'🌟 우수! 초과 저축은 샤넌 리밸런싱 풀에 투입하세요.':sr>=10?'💪 양호 — Pay Yourself First: 급여일 자동이체로 선저축':'⚠️ 즉시 개선 필요\n• 최대 지출 항목 점검\n• 자동이체 선저축 설정';
+if(!okEmg) r+='\n\n우선순위: 비상금 '+$$(totalExp*3)+' → 고금리 부채 → 샤넌 투자 풀';}
+else if(qL.includes('투자')||qL.includes('전략')){
+r='📈 투자 전략\n\n'+(investments.length?investments.map(i=>'• '+i.name+' '+$$(i.balance)+' ('+i.expectedReturn+'%)').join('\n')+'\n\n':'투자 없음\n\n');
+r+=mpt()+'\n\n'+shannon();}
+else if(qL.includes('부채')||qL.includes('대출')||qL.includes('상환')){
+r='🔓 데트 어벌랜치 전략\n\n';
+r+=debts.length?'금리 높은 순 집중 상환:\n'+[...debts].sort((a,b)=>b.interestRate-a.interestRate).map((d,i)=>(i+1)+'. '+d.name+' '+d.interestRate+'% — 잔액 '+$$(d.totalAmount)).join('\n')+'\n\n💡 최소납부 유지 + 여유자금 1번 집중 → 완납 시 다음 순위':'부채 없음 🎉 — 투자 + 샤넌 리밸런싱 집중 가능!';}
+else if(qL.includes('플랜')||qL.includes('목표')||qL.includes('100')){
+const need=Math.max(0,100000-netWorth);
 const mo=netFlow>0?Math.ceil(need/netFlow):0;
-r='🎯 $100,000 플랜\n\n현재: '+$$(netWorth)+' / 목표까지: '+$$(Math.max(0,need))+'\n'+(netFlow>0?'예상 달성: 약 '+mo+'개월':'⚠️ 먼저 흑자 전환 필요');
-}else{
-r='📊 요약\n\n수입 '+$$(totalInc)+' / 지출 '+$$(totalExp)+' / 저축률 '+sr+'% / 순자산 '+$$(netWorth)+'\n\n질문 예시: "종합 분석", "저축률", "부채 상환", "투자 전략", "리스크"';
-}
-return r+'\n\n_(기본 분석 모드 · Gemini 무료 키 연결 시 더 정교한 AI 분석 가능)_';
+r='🎯 $100,000 달성 플랜\n\n현재 '+$$(netWorth)+' → 목표까지 '+$$(need)+'\n';
+r+=netFlow>0?'저축만으로 약 '+mo+'개월\n💡 샤넌 리밸런싱 + 복리 투자 병행 시 기간 단축 가능':'⚠️ 먼저 흑자 전환 필요';}
+else{
+r='📊 현재 요약\n수입 '+$$(totalInc)+' / 지출 '+$$(totalExp)+' / 저축률 '+sr+'% / 순자산 '+$$(netWorth);
+r+='\n\n분석 주제:\n• "종합 분석" — 전체 진단 + 샤넌·MPT 적용\n• "리밸런싱" 또는 "샤넌" — 도깨비 전략\n• "포트폴리오" — MPT 자산 배분\n• "투자 전략" / "부채 상환" / "리스크" / "$100k 플랜"';}
+return r+'\n\n_(기본 분석 · Gemini 연결 시 더 정교한 AI 분석 가능)_';
 };
 const buildContext=()=>`당신은 Hilliard Buffshire의 개인 재무 AI 어드바이저입니다.
 현재 재무 현황:
@@ -1213,15 +1245,12 @@ return <>
 <button key={p.id} onClick={()=>setGuideProv(p.id)}
 style={{padding:'5px 12px',borderRadius:20,border:'2px solid',fontSize:13,fontWeight:700,cursor:'pointer',position:'relative',
 background:guideProv===p.id?'#6366f1':'#f8fafc',color:guideProv===p.id?'#fff':'#6366f1',borderColor:'#6366f1'}}>
-{p.label}{p.recommended&&<span style={{position:'absolute',top:-8,right:-4,background:'#f59e0b',color:'#fff',fontSize:10,fontWeight:800,borderRadius:8,padding:'1px 5px'}}>추천</span>}
+{p.label}
 </button>
 ))}
 </div>
 {(()=>{const gp=AI_PROVIDERS.find(p=>p.id===guideProv)||AI_PROVIDERS[0];return(
 <div>
-{gp.recommended&&<div style={{background:'linear-gradient(135deg,#fffbeb,#fef3c7)',border:'1px solid #fbbf24',borderRadius:12,padding:'10px 14px',marginBottom:16,fontSize:13,color:'#92400e',fontWeight:600}}>
-⭐ 재무 분석에 Grok을 추천하는 이유: 실시간 금융 데이터 접근, 수치 분석 강점, 재무 맥락 이해 우수
-</div>}
 <div style={{background:'#f0f9ff',borderRadius:12,padding:'10px 14px',marginBottom:16}}>
 <div style={{fontSize:13,fontWeight:700,color:'#0369a1',marginBottom:4}}>🔗 키 발급 페이지</div>
 <a href={gp.keyUrl} target="_blank" rel="noopener" style={{color:'#2563eb',fontWeight:700,fontSize:14,wordBreak:'break-all'}}>{gp.keyUrl}</a>
@@ -1277,7 +1306,6 @@ style={{padding:'4px 10px',borderRadius:20,border:'2px solid',fontSize:13,fontWe
 background:provider===p.id?'#6366f1':'#fff',
 color:provider===p.id?'#fff':'#6366f1',borderColor:'#6366f1'}}>
 {p.label}{p.free&&' ✦무료'}
-{p.recommended&&<span style={{position:'absolute',top:-8,right:-4,background:'#f59e0b',color:'#fff',fontSize:10,fontWeight:800,borderRadius:8,padding:'1px 5px',letterSpacing:0.3}}>추천</span>}
 </button>
 ))}
 </div>
