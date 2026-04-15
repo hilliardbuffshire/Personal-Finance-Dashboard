@@ -176,25 +176,13 @@ const fmt=v=>v>=1000000?`$${(v/1000000).toFixed(1)}M`:v>=1000?`$${(v/1000).toFix
 const monthKey=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 const FINANCE_QUOTES=[
 {q:"지출 후 남은 것을 저축하지 말고, 저축 후 남은 것을 지출하라.",a:"워런 버핏"},
-{q:"가격은 당신이 지불하는 것이고, 가치는 당신이 얻는 것이다.",a:"워런 버핏"},
-{q:"주식시장은 참을성 없는 사람의 돈을 참을성 있는 사람에게 이전하는 장치다.",a:"워런 버핏"},
-{q:"위험은 자신이 무엇을 하는지 모르는 것에서 온다.",a:"워런 버핏"},
-{q:"오늘 누군가가 나무 그늘 아래 쉬는 것은 오래 전 누군가가 나무를 심었기 때문이다.",a:"워런 버핏"},
 {q:"복리는 세계 8번째 불가사의다. 이해하는 자는 벌고, 못하는 자는 낸다.",a:"알버트 아인슈타인"},
-{q:"시장을 예측하려 하지 마라. 시장에 참여하라.",a:"피터 린치"},
-{q:"당신이 모르는 주식은 반값 될 때 공황 상태로 만든다.",a:"피터 린치"},
-{q:"돈이 당신을 위해 일하게 하라. 그렇지 않으면 평생 당신이 일해야 한다.",a:"로버트 기요사키"},
-{q:"부자는 자산을 산다. 중산층은 부자처럼 보이려는 부채를 산다.",a:"로버트 기요사키"},
-{q:"현명한 투자는 지식에서 비롯되고, 투기는 무지에서 비롯된다.",a:"벤저민 그레이엄"},
 {q:"시장은 단기적으로 투표 기계지만, 장기적으로 체중 측정기다.",a:"벤저민 그레이엄"},
-{q:"투자에서 가장 위험한 말은 '이번엔 다르다'이다.",a:"존 템플턴"},
 {q:"다른 사람이 탐욕스러울 때 두려워하고, 두려워할 때 탐욕스러워라.",a:"워런 버핏"},
-{q:"당신의 가장 큰 자산은 당신 자신이다. 자신에게 투자하라.",a:"워런 버핏"},
-{q:"분산투자는 무지에 대한 보호책이다.",a:"워런 버핏"},
-{q:"시간은 좋은 기업의 친구이고, 평범한 기업의 적이다.",a:"워런 버핏"},
+{q:"돈이 당신을 위해 일하게 하라. 그렇지 않으면 평생 당신이 일해야 한다.",a:"로버트 기요사키"},
 {q:"자신의 능력 범위 안에서 투자하라. 그 범위의 크기는 중요하지 않다.",a:"찰리 멍거"},
-{q:"좋은 아이디어가 나쁜 행동을 이기는 건 투자도 마찬가지다.",a:"레이 달리오"},
-{q:"실패를 두려워하지 마라. 시도하지 않는 것을 두려워하라.",a:"마크 쿠반"},
+{q:"시장을 예측하려 하지 마라. 시장에 참여하라.",a:"피터 린치"},
+{q:"투자에서 가장 위험한 말은 '이번엔 다르다'이다.",a:"존 템플턴"},
 ];
 const monthLabel=k=>{const[y,m]=k.split('-');const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return`${mn[+m-1]} ${y}`;};
 const prevMonth=k=>{const[y,m]=k.split('-').map(Number);return m===1?`${y-1}-12`:`${y}-${String(m-1).padStart(2,'0')}`;};
@@ -1134,7 +1122,7 @@ else{m+='• 투자 '+investments.length+'개 — 자산 간 상관관계 낮춤
 return m;};
 let r='';
 if(qL.includes('샤넌')||qL.includes('shannon')||qL.includes('리밸런싱')){
-r=shannon()+'\n\n🛠 실전 4단계:\n1. 목표 비율 설정 (보수 40/60 · 중립 50/50 · 공격 70/30)\n2. 월 1회 비율 확인\n3. ±5% 이상 이탈 시 리밸런싱\n4. 세금 우대 계좌에서 먼저 조정';}
+r=shannon()+'\n\n🛠 4단계: ①목표비율(40/60·50/50·70/30) ②월1회확인 ③±5%이탈시조정 ④세금우대계좌우선';}
 else if(qL.includes('포트폴리오')||qL.includes('자산배분')||qL.includes('분산')){
 r=mpt()+'\n\n'+shannon();}
 else if(qL.includes('종합')||qL.includes('현황')||qL.includes('분석')){
@@ -1167,20 +1155,12 @@ r='🎯 $100,000 달성 플랜\n\n현재 '+$$(netWorth)+' → 목표까지 '+$$(
 r+=netFlow>0?'저축만으로 약 '+mo+'개월\n💡 샤넌 리밸런싱 + 복리 투자 병행 시 기간 단축 가능':'⚠️ 먼저 흑자 전환 필요';}
 else{
 r='📊 현재 요약\n수입 '+$$(totalInc)+' / 지출 '+$$(totalExp)+' / 저축률 '+sr+'% / 순자산 '+$$(netWorth);
-r+='\n\n분석 주제:\n• "종합 분석" — 전체 진단 + 샤넌·MPT 적용\n• "리밸런싱" 또는 "샤넌" — 도깨비 전략\n• "포트폴리오" — MPT 자산 배분\n• "투자 전략" / "부채 상환" / "리스크" / "$100k 플랜"';}
+r+='\n\n주제: "종합분석" · "리밸런싱/샤넌" · "포트폴리오" · "투자전략" · "부채상환" · "리스크" · "$100k플랜"';}
 return r+'\n\n_(기본 분석 · Gemini 연결 시 더 정교한 AI 분석 가능)_';
 };
-const buildContext=()=>`당신은 Hilliard Buffshire의 개인 재무 AI 어드바이저입니다.
-현재 재무 현황:
-• 순자산(Net Worth): ${$$(netWorth)} (자산 ${$$(totalAssets)} − 부채 ${$$(totalDAmt)})
-• 현금 잔고: ${$$(currentBalance)}
-• 투자 자산: ${$$(totalInvBal)}
-• 월 수입: ${$$(totalInc)} / 월 지출: ${$$(totalExp)} / 월 순현금흐름: ${$$(netFlow)}
-• 수입: ${incomes.length?incomes.map(i=>i.name+' '+$$(i.type==='annual'?i.amount/12:i.amount)+'/월').join(', '):'없음'}
-• 지출: ${expenses.length?expenses.map(e=>e.name+' '+$$(e.amount)).join(', '):'없음'}
-• 부채: ${debts.length?debts.map(d=>d.name+' 잔액'+$$(d.totalAmount)+' 월상환'+$$(d.monthlyPayment)+' 금리'+d.interestRate+'%').join(', '):'없음'}
-• 투자: ${investments.length?investments.map(i=>i.name+' '+$$(i.balance)+' 기대수익'+i.expectedReturn+'%').join(', '):'없음'}
-위 데이터를 기반으로 실용적이고 구체적인 재무 조언을 한국어로 제공하세요. 응답은 간결하고 핵심 위주로 해주세요.`;
+const buildContext=()=>`재무 AI 어드바이저. 한국어로 간결 조언.
+순자산:${$$(netWorth)} 자산:${$$(totalAssets)} 부채:${$$(totalDAmt)} 현금:${$$(currentBalance)} 투자:${$$(totalInvBal)} 수입:${$$(totalInc)} 지출:${$$(totalExp)} 흐름:${$$(netFlow)}
+수입:[${incomes.map(i=>i.name+' '+$$(i.type==='annual'?i.amount/12:i.amount)).join(',')||'없음'}] 지출:[${expenses.map(e=>e.name+' '+$$(e.amount)).join(',')||'없음'}] 부채:[${debts.map(d=>d.name+' '+$$(d.totalAmount)+' '+d.interestRate+'%').join(',')||'없음'}] 투자:[${investments.map(i=>i.name+' '+$$(i.balance)+' '+i.expectedReturn+'%').join(',')||'없음'}]`;
 const send=async(text)=>{
 const q=(text||input).trim();
 if(!q||loading) return;
