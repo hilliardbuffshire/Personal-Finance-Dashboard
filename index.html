@@ -1110,7 +1110,7 @@ try{
 let reply='';
 const ctx=buildContext();
 if(provider==='gemini'){
-const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
 {method:'POST',headers:{'Content-Type':'application/json'},
 body:JSON.stringify({contents:[{role:'user',parts:[{text:ctx+'\n\n질문: '+q}]}],
 generationConfig:{temperature:0.7,maxOutputTokens:1024}})});
@@ -1120,7 +1120,7 @@ reply=d.candidates?.[0]?.content?.parts?.[0]?.text||'응답 없음';
 } else if(provider==='grok'){
 const r=await fetch('https://api.x.ai/v1/chat/completions',
 {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
-body:JSON.stringify({model:'grok-beta',messages:[{role:'system',content:ctx},{role:'user',content:q}],
+body:JSON.stringify({model:'grok-3',messages:[{role:'system',content:ctx},{role:'user',content:q}],
 temperature:0.7,max_tokens:1024})});
 const d=await r.json();
 if(d.error) throw new Error(typeof d.error==='string'?d.error:d.error.message);
