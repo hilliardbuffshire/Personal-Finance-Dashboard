@@ -583,6 +583,10 @@ function LedgerTab({transactions,setTx,expenses,theme}){
 const [mth,setMth]=useState(monthKey());
 const [form,setForm]=useState({date:new Date().toISOString().slice(0,10),name:'',amount:'',type:'expense',category:'식비',isOneTime:false});
 const [showForm,setShowForm]=useState(false);
+const [search,setSrch]=useState('');
+const [showBudget,setShowBudget]=useState(false);
+const [budgets,setBudgets]=useState(()=>{try{return JSON.parse(localStorage.getItem('hb_cat_budgets')||'{}')}catch{return{}}});
+const saveBudget=(cat,v)=>{const nb={...budgets,[cat]:parseFloat(v)||0};setBudgets(nb);localStorage.setItem('hb_cat_budgets',JSON.stringify(nb));};
 const autoEntries=useMemo(()=>
 (expenses||[]).map(e=>({
 id:`auto_${e.id}_${mth}`,
@@ -600,11 +604,16 @@ const mthInc=useMemo(()=>allFiltered.filter(t=>t.type==='income').reduce((s,t)=>
 const mthExp=useMemo(()=>allFiltered.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0),[allFiltered]);
 const mthNet=mthInc-mthExp;
 const autoTotal=useMemo(()=>autoEntries.reduce((s,e)=>s+e.amount,0),[autoEntries]);
-const catPie=useMemo(()=>{
-const m={};
-allFiltered.filter(t=>t.type==='expense').forEach(t=>{m[t.category]=(m[t.category]||0)+t.amount;});
-return Object.entries(m).map(([name,value],i)=>({name,value,fill:CAT_COLORS[name]||PIE_PAL[i%PIE_PAL.length]}));
-},[allFiltered]);
+const prevMth=useMemo(()=>prevMonth(mth),[mth]);
+const prevMthEntries=useMemo(()=>{
+const pm=transactions.filter(t=>t.date.startsWith(prevMth));
+const pa=(expenses||[]).map(e=>({...e,type:'expense',date:`${prevMth}-01`,auto:true}));
+return[...pm,...pa];
+},[transactions,prevMth,expenses]);
+const prevMthInc=useMemo(()=>prevMthEntries.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0),[prevMthEntries]);
+const prevMthExp=useMemo(()=>prevMthEntries.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0),[prevMthEntries]);
+const catSpent=useMemo(()=>{const m={};allFiltered.filter(t=>t.type==='expense').forEach(t=>{m[t.category]=(m[t.category]||0)+t.amount;});return m;},[allFiltered]);
+const catPie=useMemo(()=>Object.entries(catSpent).map(([name,value],i)=>({name,value,fill:CAT_COLORS[name]||PIE_PAL[i%PIE_PAL.length]})),[catSpent]);
 const barData=useMemo(()=>{
 const months=[];
 let cur=mth;
@@ -626,11 +635,17 @@ setForm(f=>({...f,name:'',amount:'',isOneTime:false}));
 setShowForm(false);
 };
 const delTx=(id)=>setTx(p=>p.filter(t=>t.id!==id));
+const recentTx=useMemo(()=>{const seen=new Set();return[...transactions].reverse().filter(t=>!t.auto&&!seen.has(t.name)&&seen.add(t.name)).slice(0,5);},[transactions]);
 const grouped=useMemo(()=>{
 const m={};
 allFiltered.forEach(t=>{(m[t.date]=m[t.date]||[]).push(t);});
 return Object.entries(m).sort((a,b)=>b[0].localeCompare(a[0]));
 },[allFiltered]);
+const filteredGrouped=useMemo(()=>{
+if(!search.trim())return grouped;
+const q=search.toLowerCase();
+return grouped.map(([d,ts])=>[d,ts.filter(t=>t.name.toLowerCase().includes(q)||(t.category||'').toLowerCase().includes(q))]).filter(([,ts])=>ts.length>0);
+},[grouped,search]);
 return(<>
 {(()=>{const _li=getLedgerInsight(mthInc,mthExp,mthNet,allFiltered);return <InsightBadge {..._li}/>;})()}
 <div>
@@ -652,13 +667,54 @@ return(<div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,ma
 <div style={{fontSize:18,fontWeight:800,color:k.c}}>{k.v}</div>
 {k.sub&&<div style={{fontSize:11,color:k.c,marginTop:2,fontWeight:600}}>{k.sub}</div>}
 </div>
-))}</div>);})()
+))}</div>);})()}
+{(prevMthExp>0||prevMthInc>0)&&(()=>{
+const expDiff=mthExp-prevMthExp;
+const incDiff=mthInc-prevMthInc;
+const expPct=prevMthExp>0?Math.round(Math.abs(expDiff)/prevMthExp*100):0;
+const incPct=prevMthInc>0?Math.round(Math.abs(incDiff)/prevMthInc*100):0;
+return(
+<div style={{display:'flex',gap:8,marginBottom:10,flexWrap:'wrap'}}>
+<div style={{flex:1,minWidth:140,background:'white',borderRadius:10,padding:'8px 12px',boxShadow:'0 1px 3px rgba(0,0,0,0.05)',display:'flex',alignItems:'center',gap:8}}>
+<span style={{fontSize:16}}>💸</span>
+<div>
+<div style={{fontSize:11,color:'#9ca3af',fontWeight:600,marginBottom:1}}>지출 vs 지난달</div>
+<div style={{fontSize:14,fontWeight:800,color:expDiff>0?'#ef4444':expDiff<0?'#22c55e':'#6b7280'}}>
+{expDiff===0?'변동없음':(expDiff>0?'▲ ':'▼ ')+$$(Math.abs(expDiff))+` (${expPct}%)`}
+<span style={{fontSize:11,color:'#9ca3af',fontWeight:400,marginLeft:4}}>{expDiff>0?'증가':expDiff<0?'감소':''}</span>
 </div>
-{}
+</div>
+</div>
+<div style={{flex:1,minWidth:140,background:'white',borderRadius:10,padding:'8px 12px',boxShadow:'0 1px 3px rgba(0,0,0,0.05)',display:'flex',alignItems:'center',gap:8}}>
+<span style={{fontSize:16}}>💰</span>
+<div>
+<div style={{fontSize:11,color:'#9ca3af',fontWeight:600,marginBottom:1}}>수입 vs 지난달</div>
+<div style={{fontSize:14,fontWeight:800,color:incDiff>0?'#22c55e':incDiff<0?'#ef4444':'#6b7280'}}>
+{incDiff===0?'변동없음':(incDiff>=0?'▲ ':'▼ ')+$$(Math.abs(incDiff))+` (${incPct}%)`}
+<span style={{fontSize:11,color:'#9ca3af',fontWeight:400,marginLeft:4}}>{incDiff>0?'증가':incDiff<0?'감소':''}</span>
+</div>
+</div>
+</div>
+</div>
+);})()}
 {autoEntries.length>0&&(
 <div style={{background:'#eff6ff',borderRadius:10,padding:'8px 12px',marginBottom:10,fontSize:13,color:'#3b82f6',display:'flex',alignItems:'center',gap:6}}>
 <span>🔁</span>
-<span>고정지출 <strong>{autoEntries.length}건</strong> ({$$(autoTotal)}) 이 자동 반영되었습니다 — 대시보드 고정지출을 수정하면 바로 반영됩니다</span>
+<span>고정지출 <strong>{autoEntries.length}건</strong> ({$$(autoTotal)}) 자동 반영</span>
+</div>
+)}
+{!showForm&&recentTx.length>0&&(
+<div style={{background:'white',borderRadius:12,padding:'10px 12px',marginBottom:10,boxShadow:'0 1px 3px rgba(0,0,0,0.05)'}}>
+<div style={{fontSize:12,color:'#9ca3af',fontWeight:700,marginBottom:7,letterSpacing:0.5}}>⚡ 최근 거래 빠른 추가</div>
+<div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+{recentTx.map((t,i)=>(
+<button key={i} onClick={()=>setTx(p=>[...p,{...t,id:gid(),date:new Date().toISOString().slice(0,10),auto:false,isOneTime:true}])}
+style={{padding:'4px 10px',borderRadius:20,border:'1px solid #e5e7eb',background:'#f8fafc',fontSize:13,cursor:'pointer',color:'#374151',fontWeight:600,display:'flex',alignItems:'center',gap:4}}>
+<span style={{fontSize:11,background:t.type==='income'?'#dcfce7':'#fee2e2',color:t.type==='income'?'#15803d':'#dc2626',borderRadius:4,padding:'0 4px',fontWeight:700}}>{t.type==='income'?'+':'-'}</span>
+{t.name} <span style={{color:'#9ca3af',fontSize:12}}>{$$(t.amount)}</span>
+</button>
+))}
+</div>
 </div>
 )}
 {!showForm
@@ -714,11 +770,20 @@ color:form.type===t?(t==='income'?'#15803d':'#dc2626'):'#6b7280'}}>
 }
 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}} className="desktop-grid">
 <div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
-<div style={{fontWeight:700,fontSize:15,color:'#1f2937',marginBottom:10}}>📋 거래 내역 ({allFiltered.length}건)</div>
-{grouped.length===0
+<div style={{display:'flex',alignItems:'center',marginBottom:10}}>
+<div style={{fontWeight:700,fontSize:15,color:'#1f2937',flex:1}}>📋 거래 내역 ({filteredGrouped.reduce((s,[,ts])=>s+ts.length,0)}건)</div>
+</div>
+<div style={{display:'flex',alignItems:'center',gap:6,border:'1px solid #e5e7eb',borderRadius:9,padding:'6px 10px',background:'#fafafa',marginBottom:10}}>
+<span style={{fontSize:14,color:'#9ca3af'}}>🔍</span>
+<input type="text" placeholder="거래 검색 (이름·카테고리)" value={search} onChange={e=>setSrch(e.target.value)}
+style={{flex:1,border:'none',background:'none',fontSize:14,outline:'none',color:'#374151'}}/>
+{search&&<button onClick={()=>setSrch('')} style={{background:'none',border:'none',color:'#9ca3af',cursor:'pointer',fontSize:14,padding:0}}>✕</button>}
+</div>
+{search&&filteredGrouped.length===0&&<div style={{textAlign:'center',padding:'20px 0',color:'#9ca3af',fontSize:14}}>"{search}" 검색 결과 없음</div>}
+{!search&&filteredGrouped.length===0
 ?<div style={{textAlign:'center',padding:'24px 0',color:'#9ca3af',fontSize:15}}>이달 거래 내역이 없습니다<br/>위 버튼으로 추가하세요</div>
 :<div style={{maxHeight:380,overflowY:'auto'}}>
-{grouped.map(([date,txns])=>(
+{filteredGrouped.map(([date,txns])=>(
 <div key={date} style={{marginBottom:12}}>
 <div style={{fontSize:13,fontWeight:700,color:'#6b7280',marginBottom:4,paddingLeft:2}}>{date}</div>
 {txns.map(t=>(
@@ -743,20 +808,59 @@ border:t.auto?'1px dashed #bfdbfe':'none',marginBottom:4}}>
 }
 </div>
 <div style={{display:'flex',flexDirection:'column',gap:10}}>
-<div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)',flex:1}}>
-<div style={{fontWeight:700,fontSize:15,color:'#1f2937',marginBottom:8}}>🥧 카테고리별 지출</div>
+<div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
+<div style={{fontWeight:700,fontSize:15,color:'#1f2937',marginBottom:6}}>🥧 카테고리별 지출</div>
 {catPie.length>0
-?<ResponsiveContainer width="100%" height={170}>
-<PieChart><Pie data={catPie} cx="50%" cy="50%" outerRadius={65} innerRadius={30} dataKey="value" nameKey="name">
+?<ResponsiveContainer width="100%" height={140}>
+<PieChart><Pie data={catPie} cx="50%" cy="50%" outerRadius={55} innerRadius={26} dataKey="value" nameKey="name">
 {catPie.map((e,i)=><Cell key={i} fill={e.fill}/>)}
 </Pie><Tooltip content={<PieTip/>}/><Legend wrapperStyle={{fontSize:12}}/></PieChart>
 </ResponsiveContainer>
-:<div style={{height:80,display:'flex',alignItems:'center',justifyContent:'center',color:'#9ca3af',fontSize:14}}>지출 거래 없음</div>
+:<div style={{height:50,display:'flex',alignItems:'center',justifyContent:'center',color:'#9ca3af',fontSize:14}}>지출 거래 없음</div>
 }
 </div>
-<div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)',flex:1}}>
+<div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
+<div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
+<div style={{fontWeight:700,fontSize:15,color:'#1f2937'}}>🎯 카테고리 예산</div>
+<button onClick={()=>setShowBudget(p=>!p)}
+style={{fontSize:12,padding:'3px 10px',borderRadius:8,border:`1px solid ${theme.tabBorder}`,background:showBudget?theme.tabActive:'white',color:showBudget?'white':theme.tabActive,cursor:'pointer',fontWeight:700}}>
+{showBudget?'✓ 완료':'✏️ 설정'}
+</button>
+</div>
+{CAT_LIST.map(cat=>{
+const spent=catSpent[cat]||0;
+const budget=budgets[cat]||0;
+const pct=budget>0?Math.min(spent/budget*100,100):0;
+const over=budget>0&&spent>budget;
+if(!showBudget&&spent===0&&budget===0)return null;
+return(
+<div key={cat} style={{marginBottom:8}}>
+<div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:3}}>
+<span style={{fontSize:13,color:'#374151',fontWeight:600}}>{cat}</span>
+{showBudget?(
+<input type="number" value={budgets[cat]||''} onChange={e=>saveBudget(cat,e.target.value)}
+placeholder="예산($)" onFocus={e=>e.target.select()}
+style={{width:76,border:`1px solid ${theme.tabBorder}`,borderRadius:6,padding:'2px 6px',fontSize:12,outline:'none',textAlign:'right'}}/>
+):(
+<span style={{fontSize:12,fontWeight:700,color:over?'#ef4444':budget>0?'#22c55e':'#9ca3af'}}>
+{budget>0?`${$$(spent)} / ${$$(budget)}`:$$(spent)}
+{over&&<span style={{marginLeft:3,fontSize:11,color:'#ef4444'}}>초과!</span>}
+</span>
+)}
+</div>
+{budget>0&&(
+<div style={{height:5,background:'#f3f4f6',borderRadius:3,overflow:'hidden'}}>
+<div style={{height:5,width:`${pct}%`,background:over?'#ef4444':pct>75?'#f97316':'#22c55e',borderRadius:3,transition:'width .4s'}}/>
+</div>
+)}
+</div>
+);
+})}
+{!showBudget&&Object.values(catSpent).every(v=>!v)&&<div style={{fontSize:13,color:'#9ca3af',textAlign:'center',padding:'4px 0'}}>이달 지출 없음</div>}
+</div>
+<div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
 <div style={{fontWeight:700,fontSize:15,color:'#1f2937',marginBottom:8}}>📊 최근 6개월 비교</div>
-<ResponsiveContainer width="100%" height={160}>
+<ResponsiveContainer width="100%" height={130}>
 <BarChart data={barData} margin={{top:2,right:4,left:-16,bottom:0}}>
 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6"/>
 <XAxis dataKey="month" tick={{fontSize:12,fill:'#9ca3af'}}/>
