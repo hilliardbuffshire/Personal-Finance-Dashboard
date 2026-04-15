@@ -9,10 +9,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.8.1/prop-types.min.js" crossorigin></script>
 <script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.min.js" crossorigin></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js" crossorigin></script>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" crossorigin></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" crossorigin></script>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:#f5f3ff;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
@@ -99,9 +99,10 @@ document.getElementById('lb').style.color=acc[idx];
 document.getElementById('ls').style.color=sub[idx];
 document.documentElement.style.setProperty('--focus-color',acc[idx]);
 })();
-window.onerror=function(m){
+window.onerror=function(m,src,line,col,err){
 document.getElementById('loading').style.display='none';
-document.getElementById('root').innerHTML='<div style="padding:24px;color:#dc2626;background:#fee2e2;margin:24px;border-radius:12px;font-size:14px">❌ 오류: '+m+'<br><br>인터넷 연결을 확인하고 새로고침 해주세요.</div>';
+var detail=err?err.stack:('Line '+line+':'+col+' @ '+src);
+document.getElementById('root').innerHTML='<div style="padding:24px;color:#dc2626;background:#fee2e2;margin:24px;border-radius:12px;font-size:14px">❌ 오류: '+m+'<br><small style="color:#9ca3af;font-size:12px">'+detail+'</small><br><br>인터넷 연결을 확인하고 새로고침 해주세요.</div>';
 };
 </script>
 <script type="text/babel">
@@ -585,7 +586,7 @@ const [form,setForm]=useState({date:new Date().toISOString().slice(0,10),name:''
 const [showForm,setShowForm]=useState(false);
 const [search,setSrch]=useState('');
 const [showBudget,setShowBudget]=useState(false);
-const [budgets,setBudgets]=useState(()=>{try{return JSON.parse(localStorage.getItem('hb_cat_budgets')||'{}')}catch{return{}}});
+const [budgets,setBudgets]=useState(()=>{try{return JSON.parse(localStorage.getItem('hb_cat_budgets')||'{}')}catch(e){return{}}});
 const saveBudget=(cat,v)=>{const nb={...budgets,[cat]:parseFloat(v)||0};setBudgets(nb);localStorage.setItem('hb_cat_budgets',JSON.stringify(nb));};
 const autoEntries=useMemo(()=>
 (expenses||[]).map(e=>({
@@ -644,7 +645,7 @@ return Object.entries(m).sort((a,b)=>b[0].localeCompare(a[0]));
 const filteredGrouped=useMemo(()=>{
 if(!search.trim())return grouped;
 const q=search.toLowerCase();
-return grouped.map(([d,ts])=>[d,ts.filter(t=>t.name.toLowerCase().includes(q)||(t.category||'').toLowerCase().includes(q))]).filter(([,ts])=>ts.length>0);
+return grouped.map(([d,ts])=>[d,ts.filter(t=>t.name.toLowerCase().includes(q)||(t.category||'').toLowerCase().includes(q))]).filter(function(g){return g[1].length>0;});
 },[grouped,search]);
 return(<>
 {(()=>{const _li=getLedgerInsight(mthInc,mthExp,mthNet,allFiltered);return <InsightBadge {..._li}/>;})()}
@@ -771,7 +772,7 @@ color:form.type===t?(t==='income'?'#15803d':'#dc2626'):'#6b7280'}}>
 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}} className="desktop-grid">
 <div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
 <div style={{display:'flex',alignItems:'center',marginBottom:10}}>
-<div style={{fontWeight:700,fontSize:15,color:'#1f2937',flex:1}}>📋 거래 내역 ({filteredGrouped.reduce((s,[,ts])=>s+ts.length,0)}건)</div>
+<div style={{fontWeight:700,fontSize:15,color:'#1f2937',flex:1}}>📋 거래 내역 ({filteredGrouped.reduce(function(s,g){return s+g[1].length;},0)}건)</div>
 </div>
 <div style={{display:'flex',alignItems:'center',gap:6,border:'1px solid #e5e7eb',borderRadius:9,padding:'6px 10px',background:'#fafafa',marginBottom:10}}>
 <span style={{fontSize:14,color:'#9ca3af'}}>🔍</span>
