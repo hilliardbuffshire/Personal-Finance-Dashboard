@@ -1080,6 +1080,8 @@ const [input,setInput]=useState('');
 const [loading,setLoading]=useState(false);
 const [provider,setProv]=useState(()=>LS.get('hb_ai_prov','gemini'));
 const [apiKey,setApiKey]=useState(()=>LS.get('hb_ai_key',''));
+const [geminiModel,setGeminiModel]=useState(()=>LS.get('hb_gemini_model','gemini-2.5-flash-lite'));
+const [detectingModel,setDetectingModel]=useState(false);
 const [showCfg,setShowCfg]=useState(false);
 const [showGuide,setShowGuide]=useState(false);
 const [guideProv,setGuideProv]=useState('grok');
@@ -1088,7 +1090,22 @@ const endRef=useRef(null);
 const inputRef=useRef(null);
 useEffect(()=>{ endRef.current?.scrollIntoView({behavior:'smooth'}); },[messages,loading]);
 useEffect(()=>{ if(open){setUnread(0);setTimeout(()=>inputRef.current?.focus(),200);} },[open]);
-const saveKey=(k,p)=>{ LS.set('hb_ai_key',k); LS.set('hb_ai_prov',p); };
+const detectGeminiModel=async(key)=>{
+setDetectingModel(true);
+try{
+const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}&pageSize=100`);
+const d=await r.json();
+if(d.error||!d.models)return;
+const names=d.models.filter(m=>m.supportedGenerationMethods?.includes('generateContent')).map(m=>m.name.replace('models/',''));
+const preferred=['gemini-2.5-flash-lite','gemini-2.5-flash','gemini-2.0-flash-lite','gemini-1.5-flash-latest','gemini-1.5-flash'];
+for(const p of preferred){
+if(names.some(n=>n===p||n.startsWith(p))){setGeminiModel(p);LS.set('hb_gemini_model',p);return;}
+}
+const flash=names.find(n=>n.includes('flash')&&!n.includes('thinking'));
+if(flash){setGeminiModel(flash);LS.set('hb_gemini_model',flash);}
+}catch(e){}finally{setDetectingModel(false);}
+};
+const saveKey=(k,p)=>{LS.set('hb_ai_key',k);LS.set('hb_ai_prov',p);if(p==='gemini'&&k)detectGeminiModel(k);};
 const localAnalyze=(q)=>{
 const sr=totalInc>0?Math.round((netFlow/totalInc)*100):0;
 const qL=(q||'').toLowerCase();
@@ -1149,7 +1166,7 @@ try{
 let reply='';
 const ctx=buildContext();
 if(provider==='gemini'){
-const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`,
+const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${apiKey}`,
 {method:'POST',headers:{'Content-Type':'application/json'},
 body:JSON.stringify({contents:[{role:'user',parts:[{text:ctx+'\n\n질문: '+q}]}],
 generationConfig:{temperature:0.7,maxOutputTokens:1024}})});
@@ -1284,6 +1301,14 @@ style={{background:'#6366f1',color:'#fff',border:'none',borderRadius:8,padding:'
 <button onClick={()=>{setShowGuide(true);setGuideProv(provider);}}
 style={{fontSize:12,color:'#fff',background:'#6366f1',border:'none',borderRadius:8,padding:'3px 10px',cursor:'pointer',fontWeight:700}}>📖 가이드</button>
 </div>
+{provider==='gemini'&&apiKey&&<div style={{marginTop:8,padding:'6px 10px',background:'#f0f9ff',borderRadius:8,fontSize:12,display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
+<span style={{color:'#6b7280'}}>🤖 모델:</span>
+<strong style={{color:'#0369a1'}}>{detectingModel?'감지 중…':geminiModel}</strong>
+<button onClick={()=>detectGeminiModel(apiKey)} disabled={detectingModel}
+style={{marginLeft:'auto',background:'#e0f2fe',color:'#0369a1',border:'none',borderRadius:6,padding:'2px 8px',fontSize:11,cursor:'pointer',fontWeight:700}}>
+{detectingModel?'⏳':'🔄 재감지'}
+</button>
+</div>}
 <button onClick={()=>{setProv('local');saveKey('','local');setShowCfg(false);}}
 style={{marginTop:8,width:'100%',background:'#f3f4f6',color:'#6b7280',border:'1px solid #e5e7eb',borderRadius:8,padding:'7px',fontSize:13,cursor:'pointer',fontWeight:600}}>
 🔍 키 없이 기본 분석으로 계속
