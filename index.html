@@ -11,8 +11,8 @@
 <script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.min.js" crossorigin></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js" crossorigin></script>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" crossorigin></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" crossorigin></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:#f5f3ff;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
@@ -1662,6 +1662,19 @@ debts={debts} investments={investments} theme={theme}/>
 </div>
 );
 }
+class ErrorBoundary extends React.Component{
+constructor(p){super(p);this.state={err:null};}
+static getDerivedStateFromError(e){return{err:e};}
+render(){
+if(this.state.err){
+return React.createElement('div',{style:{padding:24,color:'#dc2626',background:'#fee2e2',margin:24,borderRadius:12,fontSize:14}},
+'❌ React 렌더링 오류: ',this.state.err.message,
+React.createElement('pre',{style:{fontSize:11,marginTop:8,overflow:'auto',whiteSpace:'pre-wrap'}},this.state.err.stack)
+);
+}
+return this.props.children;
+}
+}
 function App(){
 const [user,setUser]=useState(()=>LS.get('hb_session',null));
 const [themeIdx,setThemeIdx]=useState(()=>{
@@ -1675,7 +1688,11 @@ return <Dashboard user={user} onLogout={()=>{ LS.del('hb_session'); setUser(null
 theme={theme} themeIdx={themeIdx} setThemeIdx={saveTheme}/>;
 }
 document.getElementById('loading').style.display='none';
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+try{
+ReactDOM.createRoot(document.getElementById('root')).render(<ErrorBoundary><App/></ErrorBoundary>);
+}catch(e){
+document.getElementById('root').innerHTML='<div style="padding:24px;color:#dc2626;background:#fee2e2;margin:24px;border-radius:12px;font-size:14px">❌ 초기화 오류: '+e.message+'<pre style="font-size:11px;margin-top:8px;white-space:pre-wrap">'+e.stack+'</pre></div>';
+}
 </script>
 </body>
 </html>
