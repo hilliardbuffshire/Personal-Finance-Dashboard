@@ -1067,8 +1067,9 @@ return(
 );
 }
 const AI_PROVIDERS=[
-{id:'gemini',label:'Gemini (Google)',free:true,placeholder:'AIza...',keyUrl:'https://aistudio.google.com/app/apikey',steps:['aistudio.google.com/app/apikey 접속','Google 계정으로 로그인','상단 "Create API key" 클릭','프로젝트 선택 후 키 생성','생성된 키(AIza...)를 복사']},
-{id:'grok',  label:'Grok (xAI)',    free:false,placeholder:'xai-...',recommended:true,keyUrl:'https://console.x.ai',steps:['console.x.ai 접속','X(구 Twitter) 계정으로 로그인','좌측 메뉴 "API Keys" 클릭','우상단 "Create API Key" 클릭','이름 입력 후 생성된 키(xai-...)를 즉시 복사']},
+{id:'local', label:'기본 분석',       free:true, noKey:true,  placeholder:'',      keyUrl:'',steps:[]},
+{id:'gemini',label:'Gemini (Google)', free:true, recommended:true,placeholder:'AIza...',keyUrl:'https://aistudio.google.com/app/apikey',steps:['aistudio.google.com/app/apikey 접속','Google 계정으로 로그인','상단 "Create API key" 클릭','프로젝트 선택 후 키 생성','생성된 키(AIza...)를 복사']},
+{id:'grok',  label:'Grok (xAI)',      free:false,placeholder:'xai-...',keyUrl:'https://console.x.ai',steps:['console.x.ai 접속','X(구 Twitter) 계정으로 로그인','좌측 메뉴 "API Keys" 클릭','우상단 "Create API Key" 클릭','이름 입력 후 생성된 키(xai-...)를 즉시 복사']},
 {id:'openai',label:'ChatGPT (OpenAI)',free:false,placeholder:'sk-...',keyUrl:'https://platform.openai.com/api-keys',steps:['platform.openai.com/api-keys 접속','OpenAI 계정으로 로그인','+ Create new secret key 클릭','이름 입력 후 Create secret key 클릭','키(sk-...)를 즉시 복사 ⚠️ 다시 볼 수 없음!']},
 ];
 function AIAdvisor({netWorth,totalInc,totalExp,netFlow,totalAssets,totalDAmt,
@@ -1088,6 +1089,38 @@ const inputRef=useRef(null);
 useEffect(()=>{ endRef.current?.scrollIntoView({behavior:'smooth'}); },[messages,loading]);
 useEffect(()=>{ if(open){setUnread(0);setTimeout(()=>inputRef.current?.focus(),200);} },[open]);
 const saveKey=(k,p)=>{ LS.set('hb_ai_key',k); LS.set('hb_ai_prov',p); };
+const localAnalyze=(q)=>{
+const sr=totalInc>0?Math.round((netFlow/totalInc)*100):0;
+const qL=(q||'').toLowerCase();
+const topExp=expenses.length?[...expenses].sort((a,b)=>b.amount-a.amount)[0]:null;
+const hiDebt=debts.length?[...debts].sort((a,b)=>b.interestRate-a.interestRate)[0]:null;
+let r='';
+if(qL.includes('종합')||qL.includes('현황')||qL.includes('분석')){
+r='📊 재무 현황 분석\n\n• 월 수입: '+$$(totalInc)+' / 지출: '+$$(totalExp)+'\n• 순현금흐름: '+$$(netFlow)+' | 저축률: '+sr+'%\n• 순자산: '+$$(netWorth)+'\n\n';
+r+=sr>=20?'✅ 저축률 우수!':sr>=10?'💪 저축률 양호. 20% 목표 추천.':netFlow<0?'🚨 지출 수입 초과 — 즉시 지출 검토 필요!':'🌱 저축률 향상 여지 있음.';
+if(topExp) r+='\n\n💡 최대 지출: '+topExp.name+' '+$$(topExp.amount)+'/월';
+}else if(qL.includes('리스크')||qL.includes('위험')){
+const rs=[];
+if(netFlow<0) rs.push('• ⚠️ 지출 초과 (월 '+$$(-netFlow)+' 적자)');
+if(hiDebt&&hiDebt.interestRate>=15) rs.push('• ⚠️ 고금리 부채: '+hiDebt.name+' '+hiDebt.interestRate+'%');
+if(currentBalance<totalExp*3) rs.push('• ⚠️ 비상금 부족 (권장 '+$$(totalExp*3)+')');
+r='⚠️ 재무 리스크\n\n'+(rs.length?rs.join('\n'):'✅ 주요 리스크 없음');
+}else if(qL.includes('저축')){
+r='💰 저축률: '+sr+'%\n\n';
+r+=sr>=20?'🌟 훌륭합니다!':sr>=10?'💪 양호. 20% 목표 도전해보세요.':'⚠️ 개선 필요\n• 최대 지출 항목 점검\n• 자동이체로 선저축 실천';
+}else if(qL.includes('투자')){
+r='📈 투자 현황\n\n'+(investments.length?investments.map(i=>'• '+i.name+': '+$$(i.balance)+' ('+i.expectedReturn+'%)').join('\n')+'\n\n총: '+$$(totalInvBal):'투자 계좌 없음\n\n💡 S&P500 ETF 소액 정기투자 시작 추천');
+}else if(qL.includes('부채')||qL.includes('대출')||qL.includes('상환')){
+r='🔓 부채 현황\n\n'+(debts.length?debts.map(d=>'• '+d.name+': '+$$(d.totalAmount)+' | '+d.interestRate+'% | 월 '+$$(d.monthlyPayment)).join('\n')+'\n\n💡 고금리 부채 우선 상환 추천':'부채 없음 🎉');
+}else if(qL.includes('플랜')||qL.includes('목표')||qL.includes('100')){
+const need=100000-netWorth;
+const mo=netFlow>0?Math.ceil(need/netFlow):0;
+r='🎯 $100,000 플랜\n\n현재: '+$$(netWorth)+' / 목표까지: '+$$(Math.max(0,need))+'\n'+(netFlow>0?'예상 달성: 약 '+mo+'개월':'⚠️ 먼저 흑자 전환 필요');
+}else{
+r='📊 요약\n\n수입 '+$$(totalInc)+' / 지출 '+$$(totalExp)+' / 저축률 '+sr+'% / 순자산 '+$$(netWorth)+'\n\n질문 예시: "종합 분석", "저축률", "부채 상환", "투자 전략", "리스크"';
+}
+return r+'\n\n_(기본 분석 모드 · Gemini 무료 키 연결 시 더 정교한 AI 분석 가능)_';
+};
 const buildContext=()=>`당신은 Hilliard Buffshire의 개인 재무 AI 어드바이저입니다.
 현재 재무 현황:
 • 순자산(Net Worth): ${$$(netWorth)} (자산 ${$$(totalAssets)} − 부채 ${$$(totalDAmt)})
@@ -1102,6 +1135,12 @@ const buildContext=()=>`당신은 Hilliard Buffshire의 개인 재무 AI 어드�
 const send=async(text)=>{
 const q=(text||input).trim();
 if(!q||loading) return;
+if(provider==='local'){
+setMessages(p=>[...p,{role:'user',content:q}]);
+setInput('');setLoading(true);
+setTimeout(()=>{setMessages(p=>[...p,{role:'ai',content:localAnalyze(q)}]);setLoading(false);},400);
+return;
+}
 if(!apiKey){setShowCfg(true);return;}
 setMessages(p=>[...p,{role:'user',content:q}]);
 setInput('');
@@ -1204,11 +1243,11 @@ style={{display:'block',textAlign:'center',background:'#6366f1',color:'#fff',pad
 <span style={{fontSize:22}}>🤖</span>
 <div style={{flex:1}}>
 <div style={{color:'#fff',fontWeight:800,fontSize:16,letterSpacing:.5}}>AI 재무 어드바이저</div>
-<div style={{color:'rgba(255,255,255,.65)',fontSize:12}}>{curProv.label} · {apiKey?'연결됨':'API 키 필요'}</div>
+<div style={{color:'rgba(255,255,255,.65)',fontSize:12}}>{curProv.label} · {provider==='local'?'✅ 키 불필요':apiKey?'✅ 연결됨':'키 미설정'}</div>
 </div>
 <button onClick={()=>setShowCfg(s=>!s)} style={{background:'rgba(255,255,255,.2)',border:'none',borderRadius:8,
 padding:'4px 8px',color:'#fff',fontSize:14,cursor:'pointer'}}>⚙️</button>
-<button onClick={()=>setOpen(false)} style={{background:'rgba(255,255,255,.2)',border:'none',borderRadius:8,
+<button onClick={()=>{setOpen(false);setShowCfg(false);}} style={{background:'rgba(255,255,255,.2)',border:'none',borderRadius:8,
 padding:'4px 8px',color:'#fff',fontSize:14,cursor:'pointer',marginLeft:4}}>✕</button>
 </div>
 {}
@@ -1225,24 +1264,31 @@ color:provider===p.id?'#fff':'#6366f1',borderColor:'#6366f1'}}>
 </button>
 ))}
 </div>
-<div style={{fontSize:13,fontWeight:700,color:'#6b7280',marginBottom:4}}>API 키 ({curProv.placeholder})</div>
+{provider==='local'
+?<div style={{background:'#f0fdf4',borderRadius:10,padding:'10px 14px',fontSize:13,color:'#166534',fontWeight:600,lineHeight:1.6}}>
+✅ 기본 분석 모드 — API 키 불필요<br/>
+<span style={{fontWeight:400,fontSize:12,color:'#4b5563'}}>재무 데이터 기반 규칙형 인사이트 제공.<br/>Gemini(무료) 선택 시 더 정교한 AI 분석 가능.</span>
+</div>
+:<>
+<div style={{fontSize:13,fontWeight:700,color:'#6b7280',marginBottom:4}}>API 키 ({curProv.placeholder||'키 입력'})</div>
 <div style={{display:'flex',gap:6}}>
 <input type="password" value={apiKey} onChange={e=>setApiKey(e.target.value)}
-placeholder={curProv.placeholder} style={{flex:1,border:'1px solid #d1d5db',borderRadius:8,
-padding:'6px 10px',fontSize:14,outline:'none'}}/>
+placeholder={curProv.placeholder} style={{flex:1,border:'1px solid #d1d5db',borderRadius:8,padding:'6px 10px',fontSize:14,outline:'none'}}/>
 <button onClick={()=>{saveKey(apiKey,provider);setShowCfg(false);}}
-style={{background:'#6366f1',color:'#fff',border:'none',borderRadius:8,
-padding:'6px 12px',fontSize:14,fontWeight:700,cursor:'pointer'}}>저장</button>
+style={{background:'#6366f1',color:'#fff',border:'none',borderRadius:8,padding:'6px 12px',fontSize:14,fontWeight:700,cursor:'pointer'}}>저장</button>
 </div>
 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:8}}>
 <div style={{fontSize:12,color:'#9ca3af'}}>
-<a href={curProv.keyUrl} target="_blank" rel="noopener" style={{color:'#6366f1',fontWeight:700}}>🔑 {curProv.label} 키 발급 페이지 →</a>
+<a href={curProv.keyUrl} target="_blank" rel="noopener" style={{color:'#6366f1',fontWeight:700}}>🔑 키 발급 →</a>
 </div>
 <button onClick={()=>{setShowGuide(true);setGuideProv(provider);}}
-style={{fontSize:12,color:'#fff',background:'#6366f1',border:'none',borderRadius:8,padding:'3px 10px',cursor:'pointer',fontWeight:700}}>
-📖 단계별 가이드
-</button>
+style={{fontSize:12,color:'#fff',background:'#6366f1',border:'none',borderRadius:8,padding:'3px 10px',cursor:'pointer',fontWeight:700}}>📖 가이드</button>
 </div>
+<button onClick={()=>{setProv('local');saveKey('','local');setShowCfg(false);}}
+style={{marginTop:8,width:'100%',background:'#f3f4f6',color:'#6b7280',border:'1px solid #e5e7eb',borderRadius:8,padding:'7px',fontSize:13,cursor:'pointer',fontWeight:600}}>
+🔍 키 없이 기본 분석으로 계속
+</button>
+</>}
 </div>}
 {}
 <div style={{flex:1,overflowY:'auto',padding:'12px 14px',display:'flex',flexDirection:'column',gap:10}}>
@@ -1277,7 +1323,7 @@ paddingLeft:m.role==='user'?0:4,paddingRight:m.role==='user'?4:0}}>
 <div style={{padding:'10px 12px',borderTop:'1px solid #e2e8f0',display:'flex',gap:8,flexShrink:0}}>
 <input ref={inputRef} value={input} onChange={e=>setInput(e.target.value)}
 onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}}
-placeholder={apiKey?'재무 질문을 입력하세요... (Enter)':'⚙️ 먼저 API 키를 설정하세요'}
+placeholder={provider==='local'||apiKey?'재무 질문을 입력하세요... (Enter)':'⚙️ API 키 설정 또는 기본 분석 선택'}
 style={{flex:1,border:'1.5px solid #e2e8f0',borderRadius:12,padding:'8px 12px',
 fontSize:15,outline:'none',fontFamily:'inherit'}}/>
 <button onClick={()=>send()} disabled={loading||!input.trim()}
