@@ -99,10 +99,9 @@ document.getElementById('lb').style.color=acc[idx];
 document.getElementById('ls').style.color=sub[idx];
 document.documentElement.style.setProperty('--focus-color',acc[idx]);
 })();
-window.onerror=function(m,src,line,col,err){
+window.onerror=function(m){
 document.getElementById('loading').style.display='none';
-var detail=err?err.stack:('Line '+line+':'+col+' @ '+src);
-document.getElementById('root').innerHTML='<div style="padding:24px;color:#dc2626;background:#fee2e2;margin:24px;border-radius:12px;font-size:14px">❌ 오류: '+m+'<br><small style="color:#9ca3af;font-size:12px">'+detail+'</small><br><br>인터넷 연결을 확인하고 새로고침 해주세요.</div>';
+document.getElementById('root').innerHTML='<div style="padding:24px;color:#dc2626;background:#fee2e2;margin:24px;border-radius:12px;font-size:14px">❌ 오류: '+m+'<br><br>인터넷 연결을 확인하고 새로고침 해주세요.</div>';
 };
 </script>
 <script type="text/babel">
@@ -1688,11 +1687,7 @@ return <Dashboard user={user} onLogout={()=>{ LS.del('hb_session'); setUser(null
 theme={theme} themeIdx={themeIdx} setThemeIdx={saveTheme}/>;
 }
 document.getElementById('loading').style.display='none';
-try{
 ReactDOM.createRoot(document.getElementById('root')).render(<ErrorBoundary><App/></ErrorBoundary>);
-}catch(e){
-document.getElementById('root').innerHTML='<div style="padding:24px;color:#dc2626;background:#fee2e2;margin:24px;border-radius:12px;font-size:14px">❌ 초기화 오류: '+e.message+'<pre style="font-size:11px;margin-top:8px;white-space:pre-wrap">'+e.stack+'</pre></div>';
-}
 </script>
 </body>
 </html>
