@@ -567,7 +567,7 @@ background:ap===k?theme.tabActive:'transparent',color:ap===k?'white':'#6b7280',t
 </div>
 </>);
 }
-function LedgerTab({transactions,setTx,expenses,theme}){
+function LedgerTab({transactions,setTx,expenses,theme,currentBalance,setCB,cashAccounts,setCashAccts}){
 const [mth,setMth]=useState(monthKey());
 const [form,setForm]=useState({date:new Date().toISOString().slice(0,10),name:'',amount:'',type:'expense',category:'식비',isOneTime:false});
 const [showForm,setShowForm]=useState(false);
@@ -616,13 +616,26 @@ expense:txns.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0)+fixedTota
 };
 });
 },[transactions,mth,expenses]);
+const adjBal=(delta)=>{
+if(cashAccounts?.length>0){
+const idx=cashAccounts.findIndex(a=>a.assetType!=='investment');
+if(idx>=0){setCashAccts(p=>p.map((a,i)=>i===idx?{...a,balance:Math.round((a.balance+delta)*100)/100}:a));return;}
+}
+setCB(p=>Math.round((p+delta)*100)/100);
+};
 const addTx=()=>{
 if(!form.name||!form.amount)return;
-setTx(p=>[...p,{...form,amount:parseFloat(form.amount)||0,id:gid()}]);
+const amt=parseFloat(form.amount)||0;
+setTx(p=>[...p,{...form,amount:amt,id:gid()}]);
+adjBal(form.type==='income'?amt:-amt);
 setForm(f=>({...f,name:'',amount:'',isOneTime:false}));
 setShowForm(false);
 };
-const delTx=(id)=>setTx(p=>p.filter(t=>t.id!==id));
+const delTx=(id)=>{
+const tx=transactions.find(t=>t.id===id);
+if(tx&&!tx.auto) adjBal(tx.type==='income'?-tx.amount:tx.amount);
+setTx(p=>p.filter(t=>t.id!==id));
+};
 const recentTx=useMemo(()=>{const seen=new Set();return[...transactions].reverse().filter(t=>!t.auto&&!seen.has(t.name)&&seen.add(t.name)).slice(0,5);},[transactions]);
 const grouped=useMemo(()=>{
 const m={};
@@ -696,7 +709,7 @@ return(
 <div style={{fontSize:12,color:'#9ca3af',fontWeight:700,marginBottom:7,letterSpacing:0.5}}>⚡ 최근 거래 빠른 추가</div>
 <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
 {recentTx.map((t,i)=>(
-<button key={i} onClick={()=>setTx(p=>[...p,{...t,id:gid(),date:new Date().toISOString().slice(0,10),auto:false,isOneTime:true}])}
+<button key={i} onClick={()=>{setTx(p=>[...p,{...t,id:gid(),date:new Date().toISOString().slice(0,10),auto:false,isOneTime:true}]);adjBal(t.type==='income'?t.amount:-t.amount);}}
 style={{padding:'4px 10px',borderRadius:20,border:'1px solid #e5e7eb',background:'#f8fafc',fontSize:13,cursor:'pointer',color:'#374151',fontWeight:600,display:'flex',alignItems:'center',gap:4}}>
 <span style={{fontSize:11,background:t.type==='income'?'#dcfce7':'#fee2e2',color:t.type==='income'?'#15803d':'#dc2626',borderRadius:4,padding:'0 4px',fontWeight:700}}>{t.type==='income'?'+':'-'}</span>
 {t.name} <span style={{color:'#9ca3af',fontSize:12}}>{$$(t.amount)}</span>
@@ -1721,7 +1734,7 @@ style={{width:'100%',border:'2px solid #e5e7eb',borderRadius:10,padding:'9px 11p
 </div>
 </div>
 {tab==='overview'&&<OverviewTab incomes={incomes} setInc={setInc} expenses={expenses} setExp={setExp} debts={debts} setDbt={setDbt} totalInc={totalInc} totalExp={totalExp} totalDPay={totalDPay} netFlow={netFlow} transactions={transactions} theme={theme}/>}
-{tab==='ledger'&&<LedgerTab transactions={transactions} setTx={setTx} expenses={expenses} theme={theme}/>}
+{tab==='ledger'&&<LedgerTab transactions={transactions} setTx={setTx} expenses={expenses} theme={theme} currentBalance={currentBalance} setCB={setCB} cashAccounts={cashAccounts} setCashAccts={setCashAccts}/>}
 {tab==='investments'&&<InvestmentTab investments={investments} setInv={setInv} cashAccounts={cashAccounts} setCashAccts={setCashAccts}/>}
 {tab==='projection'&&<ProjectionTab currentBalance={currentBalance} setCB={setCB} savingsGoal={savingsGoal} setSG={setSG} projMonths={projMonths} setPM={setPM} projData={projData.filter((_,i)=>i%Math.max(1,Math.floor(projMonths/20))===0)} milestones={milestones} totalInc={totalInc} totalExp={totalExp} totalDPay={totalDPay}/>}
 <div style={{textAlign:'center',fontSize:12,color:'#cbd5e1',marginTop:20,paddingBottom:20}}>
