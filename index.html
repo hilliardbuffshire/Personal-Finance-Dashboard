@@ -184,6 +184,10 @@ const FINANCE_QUOTES=[
 {q:"시장을 예측하려 하지 마라. 시장에 참여하라.",a:"피터 린치"},
 {q:"투자에서 가장 위험한 말은 '이번엔 다르다'이다.",a:"존 템플턴"},
 ];
+const LANGS={
+kr:{t:['대시보드','가계부','투자','예측'],c:['월 수입','월 지출 합계','월 순 현금흐름','투자 잔고','총 자산','순자산 (Net Worth)'],nw:'순자산 (Net Worth)',save:'저장',add:'추가',cancel:'취소',logout:'로그아웃',reset:'초기화',login:'🔑 로그인',newAcc:'✨ 새 계정',loginBtn:'로그인 →',regBtn:'계정 만들기 →',busy:'처리 중...',uid:'아이디',pw:'비밀번호',showPw:'보기',hidePw:'숨김',inc:'💚 수입',exp:'❤️ 지출',dbt:'💜 부채',incItems:'수입 항목',fixedExp:'고정 지출',debts:'부채',incName:'수입명',incAmt:'월 금액 ($)',monthly:'매월',annual:'연1회',expName:'지출명',expDay:'납부일 (일,선택)',cat:'카테고리',dbtName:'부채명',dbtAmt:'잔여 부채 ($)',dbtPay:'월 납부 ($)',dbtRate:'연이율 (%)',addInc:'수입 추가',addExp:'지출 추가',addDbt:'부채 추가',addTx:'거래 추가 (1회성·비정기)',newTx:'📝 새 거래 입력',txType:'유형',txDate:'날짜',txName:'내용',txAmt:'금액 ($)',oneTime:'🎁 1회성',txI:'💰 수입',txE:'💸 지출',hist:'📋 거래 내역',srch:'거래 검색 (이름·카테고리)',savGoal:'🎯 저축 목표 ($)',cashBal:'💰 현금 잔고 ($)',projPd:'📅 예측 기간',projNW:'🔮 예측 순자산',theme:'테마',paid:'✅ 납부됨',upcoming:'🕐 납부 예정',schedInfo:'이달 납부 예정 고정지출',},
+en:{t:['Dashboard','Ledger','Investments','Forecast'],c:['Monthly Income','Total Expenses','Monthly Cash Flow','Investment Balance','Total Assets','Net Worth'],nw:'Net Worth',save:'Save',add:'Add',cancel:'Cancel',logout:'Logout',reset:'Reset',login:'🔑 Login',newAcc:'✨ Sign Up',loginBtn:'Login →',regBtn:'Create Account →',busy:'Processing...',uid:'Username',pw:'Password',showPw:'Show',hidePw:'Hide',inc:'💚 Income',exp:'❤️ Expenses',dbt:'💜 Debt',incItems:'Income Items',fixedExp:'Fixed Expenses',debts:'Debts',incName:'Name',incAmt:'Monthly ($)',monthly:'Monthly',annual:'Annual',expName:'Name',expDay:'Due Day (opt)',cat:'Category',dbtName:'Name',dbtAmt:'Remaining ($)',dbtPay:'Monthly Pmt ($)',dbtRate:'Annual Rate (%)',addInc:'Add Income',addExp:'Add Expense',addDbt:'Add Debt',addTx:'Add Transaction (One-time)',newTx:'📝 New Transaction',txType:'Type',txDate:'Date',txName:'Description',txAmt:'Amount ($)',oneTime:'🎁 One-time',txI:'💰 Income',txE:'💸 Expense',hist:'📋 Transaction History',srch:'Search (name · category)',savGoal:'🎯 Savings Goal ($)',cashBal:'💰 Cash Balance ($)',projPd:'📅 Forecast Period',projNW:'🔮 Projected NW',theme:'Theme',paid:'✅ Paid',upcoming:'🕐 Upcoming',schedInfo:'Scheduled fixed expenses this month',},
+};
 const monthLabel=k=>{const[y,m]=k.split('-');const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return`${mn[+m-1]} ${y}`;};
 const prevMonth=k=>{const[y,m]=k.split('-').map(Number);return m===1?`${y-1}-12`:`${y}-${String(m-1).padStart(2,'0')}`;};
 const nextMonth=k=>{const[y,m]=k.split('-').map(Number);return m===12?`${y+1}-01`:`${y}-${String(m+1).padStart(2,'0')}`;};
@@ -294,7 +298,7 @@ return(
 </div>
 );
 }
-function AuthScreen({onLogin, theme}){
+function AuthScreen({onLogin, theme, lang}){
 const [tab,setTab]=useState('login');
 const [username,setUsername]=useState('');
 const [pw,setPw]=useState('');
@@ -348,7 +352,7 @@ background:theme.authBg,padding:'20px'}}>
 <div style={{background:'white',borderRadius:20,padding:28,boxShadow:'0 25px 60px rgba(0,0,0,0.4)'}}>
 {}
 <div style={{display:'flex',background:'#f8fafc',borderRadius:10,padding:3,marginBottom:20}}>
-{[['login','🔑 로그인'],['register','✨ 새 계정']].map(([k,l])=>(
+{(()=>{const L=LANGS[lang||'kr'];return[['login',L.login],['register',L.newAcc]].map(([k,l])=>(
 <button key={k} onClick={()=>{setTab(k);setErr('');}}
 style={{flex:1,padding:'8px 0',borderRadius:8,border:'none',fontSize:15,fontWeight:700,
 background:tab===k?'white':'transparent',
@@ -356,11 +360,11 @@ color:tab===k?theme.tabActive:'#94a3b8',
 boxShadow:tab===k?'0 1px 4px rgba(0,0,0,0.1)':'none',transition:'all .2s'}}>
 {l}
 </button>
-))}
+));})()}
 </div>
 {}
 <div style={{marginBottom:12}}>
-<label style={{fontSize:13,fontWeight:700,color:'#374151',display:'block',marginBottom:5,letterSpacing:1}}>아이디</label>
+<label style={{fontSize:13,fontWeight:700,color:'#374151',display:'block',marginBottom:5,letterSpacing:1}}>{LANGS[lang||'kr'].uid}</label>
 <input type="text" placeholder="영문+숫자+_ (2자 이상)" value={username}
 onChange={e=>{setUsername(e.target.value);setErr('');}}
 onKeyDown={e=>e.key==='Enter'&&submit()}
@@ -368,18 +372,18 @@ style={{width:'100%',padding:'10px 12px',border:'2px solid #e5e7eb',borderRadius
 </div>
 {}
 <div style={{marginBottom:16,position:'relative'}}>
-<label style={{fontSize:13,fontWeight:700,color:'#374151',display:'block',marginBottom:5,letterSpacing:1}}>비밀번호</label>
-<input type={showPw?'text':'password'} placeholder={tab==='register'?'6자 이상':'비밀번호'} value={pw}
+<label style={{fontSize:13,fontWeight:700,color:'#374151',display:'block',marginBottom:5,letterSpacing:1}}>{LANGS[lang||'kr'].pw}</label>
+<input type={showPw?'text':'password'} placeholder={tab==='register'?'6자 이상':LANGS[lang||'kr'].pw} value={pw}
 onChange={e=>{setPw(e.target.value);setErr('');}} onKeyDown={e=>e.key==='Enter'&&submit()}
 style={{width:'100%',padding:'10px 44px 10px 12px',border:'2px solid #e5e7eb',borderRadius:10,fontSize:16}}/>
-<button onClick={()=>setShowPw(p=>!p)} style={{position:'absolute',right:10,bottom:8,background:'none',border:'none',color:'#9ca3af',fontSize:13,padding:'2px 4px'}}>{showPw?'숨김':'보기'}</button>
+<button onClick={()=>setShowPw(p=>!p)} style={{position:'absolute',right:10,bottom:8,background:'none',border:'none',color:'#9ca3af',fontSize:13,padding:'2px 4px'}}>{showPw?LANGS[lang||'kr'].hidePw:LANGS[lang||'kr'].showPw}</button>
 </div>
 {err&&<div style={{marginBottom:12,padding:'8px 12px',background:'#fee2e2',borderRadius:8,fontSize:15,color:'#dc2626',fontWeight:600}}>⚠️ {err}</div>}
 <button onClick={submit} disabled={loading}
 style={{width:'100%',padding:'12px 0',background:theme.btnGrad,color:'white',border:'none',
 borderRadius:12,fontSize:15,fontWeight:800,letterSpacing:1,opacity:loading?0.7:1,
 boxShadow:'0 4px 15px rgba(0,0,0,0.2)'}}>
-{loading?'처리 중...':(tab==='login'?'로그인 →':'계정 만들기 →')}
+{(()=>{const L=LANGS[lang||'kr'];return loading?L.busy:(tab==='login'?L.loginBtn:L.regBtn);})()}
 </button>
 {!FB_READY&&(
 <div style={{marginTop:12,padding:'10px 12px',background:'#fef3c7',borderRadius:8,fontSize:13,color:'#92400e',lineHeight:1.7}}>
@@ -458,14 +462,14 @@ if(investments.length===1)
 return{emoji:'💡',msg:'한 종목에만 투자 중이에요. 다양한 자산으로 분산하면 리스크가 줄어요!',color:'#d97706',bg:'#fffbeb',sub:`현재 ${investments[0].name} ${$$(investments[0].balance)}`};
 return{emoji:'💰',msg:`총 ${$$(totalBal)} 투자 중이에요. 꾸준히 늘려가면 복리 효과가 커져요!`,color:'#4f46e5',bg:'#eef2ff'};
 }
-function OverviewTab({incomes,setInc,expenses,setExp,debts,setDbt,totalInc,totalExp,totalDPay,netFlow,transactions,theme}){
+function OverviewTab({incomes,setInc,expenses,setExp,debts,setDbt,totalInc,totalExp,totalDPay,netFlow,transactions,theme,L}){
 const [ap,setAp]=useState('income');
 const upd=s=>(id,v)=>s(p=>p.map(x=>x.id===id?{...x,...v}:x));
 const del=s=>(id)=>s(p=>p.filter(x=>x.id!==id));
 const add=s=>item=>s(p=>[...p,item]);
-const FI=[{key:'name',label:'수입명',ph:'예: 월급'},{key:'amount',label:'월 금액 ($)',type:'number',def:0},{key:'type',label:'유형',type:'select',opts:['monthly','annual'],optLabels:{monthly:'매월',annual:'연1회'},def:'monthly'}];
-const FE=[{key:'name',label:'지출명',ph:'예: 렌트'},{key:'amount',label:'월 금액 ($)',type:'number',def:0},{key:'category',label:'카테고리',type:'select',opts:CAT_LIST,def:'기타'}];
-const FD=[{key:'name',label:'부채명',ph:'예: 학자금'},{key:'totalAmount',label:'잔여 부채 ($)',type:'number',def:0},{key:'monthlyPayment',label:'월 납부 ($)',type:'number',def:0},{key:'interestRate',label:'연이율 (%)',type:'number',def:0}];
+const FI=[{key:'name',label:L.incName,ph:'예: 월급'},{key:'amount',label:L.incAmt,type:'number',def:0},{key:'type',label:'유형',type:'select',opts:['monthly','annual'],optLabels:{monthly:L.monthly,annual:L.annual},def:'monthly'}];
+const FE=[{key:'name',label:L.expName,ph:'예: 렌트'},{key:'amount',label:L.incAmt,type:'number',def:0},{key:'day',label:L.expDay,type:'number',def:0,ph:'1-31'},{key:'category',label:L.cat,type:'select',opts:CAT_LIST,def:'기타'}];
+const FD=[{key:'name',label:L.dbtName,ph:'예: 학자금'},{key:'totalAmount',label:L.dbtAmt,type:'number',def:0},{key:'monthlyPayment',label:L.dbtPay,type:'number',def:0},{key:'interestRate',label:L.dbtRate,type:'number',def:0}];
 const expByCat=useMemo(()=>{
 const m={};
 expenses.forEach(e=>{m[e.category]=(m[e.category]||0)+e.amount;});
@@ -487,7 +491,7 @@ return(<>
 <div style={{display:'grid',gridTemplateColumns:'340px 1fr',gap:16}} className="desktop-grid">
 <div>
 <div style={{display:'flex',background:'white',borderRadius:12,border:'1px solid #e2e8f0',marginBottom:10,overflow:'hidden',boxShadow:'0 1px 3px rgba(0,0,0,0.05)'}}>
-{[['income','💚 수입'],['expense','❤️ 지출'],['debt','💜 부채']].map(([k,l])=>(
+{[[`income`,L.inc],[`expense`,L.exp],[`debt`,L.dbt]].map(([k,l])=>(
 <button key={k} onClick={()=>setAp(k)} style={{flex:1,padding:'10px 0',border:'none',fontSize:14,fontWeight:700,
 background:ap===k?theme.tabActive:'transparent',color:ap===k?'white':'#6b7280',transition:'all .2s'}}>
 {l}
@@ -497,27 +501,27 @@ background:ap===k?theme.tabActive:'transparent',color:ap===k?'white':'#6b7280',t
 <div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)',marginBottom:10}}>
 {ap==='income'&&<>
 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
-<span style={{fontWeight:700,fontSize:15,color:'#1f2937'}}>수입 항목</span>
+<span style={{fontWeight:700,fontSize:15,color:'#1f2937'}}>{L.incItems}</span>
 <span style={{color:'#22c55e',fontWeight:800,fontSize:15}}>{$$(totalInc)}/월</span>
 </div>
 {incomes.map(i=><EditRow key={i.id} item={i} fields={FI} onSave={upd(setInc)} onDelete={del(setInc)} bg="bg-green-50"/>)}
-<AddForm fields={FI} onAdd={add(setInc)} label="수입 추가"/>
+<AddForm fields={FI} onAdd={add(setInc)} label={L.addInc}/>
 </>}
 {ap==='expense'&&<>
 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
-<span style={{fontWeight:700,fontSize:15,color:'#1f2937'}}>고정 지출</span>
+<span style={{fontWeight:700,fontSize:15,color:'#1f2937'}}>{L.fixedExp}</span>
 <span style={{color:'#ef4444',fontWeight:800,fontSize:15}}>{$$(totalExp)}/월</span>
 </div>
 {expenses.map(e=><EditRow key={e.id} item={e} fields={FE} onSave={upd(setExp)} onDelete={del(setExp)} bg="bg-red-50"/>)}
-<AddForm fields={FE} onAdd={add(setExp)} label="지출 추가"/>
+<AddForm fields={FE} onAdd={add(setExp)} label={L.addExp}/>
 </>}
 {ap==='debt'&&<>
 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
-<span style={{fontWeight:700,fontSize:15,color:'#1f2937'}}>부채</span>
+<span style={{fontWeight:700,fontSize:15,color:'#1f2937'}}>{L.debts}</span>
 <span style={{color:'#8b5cf6',fontWeight:800,fontSize:15}}>월 {$$(totalDPay)}</span>
 </div>
 {debts.map(d=><EditRow key={d.id} item={d} fields={FD} onSave={upd(setDbt)} onDelete={del(setDbt)} bg="bg-purple-50"/>)}
-<AddForm fields={FD} onAdd={add(setDbt)} label="부채 추가"/>
+<AddForm fields={FD} onAdd={add(setDbt)} label={L.addDbt}/>
 </>}
 </div>
 <div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
@@ -567,7 +571,7 @@ background:ap===k?theme.tabActive:'transparent',color:ap===k?'white':'#6b7280',t
 </div>
 </>);
 }
-function LedgerTab({transactions,setTx,expenses,theme,currentBalance,setCB,cashAccounts,setCashAccts}){
+function LedgerTab({transactions,setTx,expenses,theme,currentBalance,setCB,cashAccounts,setCashAccts,L}){
 const [mth,setMth]=useState(monthKey());
 const [form,setForm]=useState({date:new Date().toISOString().slice(0,10),name:'',amount:'',type:'expense',category:'식비',isOneTime:false});
 const [showForm,setShowForm]=useState(false);
@@ -582,7 +586,7 @@ name:e.name,
 amount:e.amount,
 type:'expense',
 category:e.category||'기타',
-date:`${mth}-01`,
+date:`${mth}-${String(e.day&&e.day>=1&&e.day<=31?e.day:1).padStart(2,'0')}`,
 auto:true,
 }))
 ,[expenses,mth]);
@@ -699,9 +703,24 @@ return(
 </div>
 );})()}
 {autoEntries.length>0&&(
-<div style={{background:'#eff6ff',borderRadius:10,padding:'8px 12px',marginBottom:10,fontSize:13,color:'#3b82f6',display:'flex',alignItems:'center',gap:6}}>
+<div style={{background:'#eff6ff',borderRadius:10,padding:'10px 12px',marginBottom:10,fontSize:13,color:'#3b82f6'}}>
+<div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
 <span>🔁</span>
-<span>고정지출 <strong>{autoEntries.length}건</strong> ({$$(autoTotal)}) 자동 반영</span>
+<span style={{fontWeight:700}}>{L.schedInfo}</span>
+<span style={{marginLeft:'auto',fontWeight:800}}>{$$(autoTotal)}</span>
+</div>
+<div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+{(expenses||[]).filter(e=>e.day&&e.day>=1&&e.day<=31).map(e=>{
+const today=new Date().getDate();
+const paid=mth===monthKey()&&Number(e.day)<=today;
+return(
+<span key={e.id} style={{fontSize:12,padding:'2px 8px',borderRadius:20,fontWeight:600,
+background:paid?'#dcfce7':'#dbeafe',color:paid?'#15803d':'#1d4ed8',border:`1px solid ${paid?'#bbf7d0':'#bfdbfe'}`}}>
+{paid?L.paid:L.upcoming} {e.name} ({e.day}일)
+</span>
+);
+})}
+</div>
 </div>
 )}
 {!showForm&&recentTx.length>0&&(
@@ -722,61 +741,61 @@ style={{padding:'4px 10px',borderRadius:20,border:'1px solid #e5e7eb',background
 ?<button onClick={()=>setShowForm(true)} style={{width:'100%',marginBottom:12,padding:'11px 0',
 background:theme.btnGrad,color:'white',border:'none',borderRadius:12,fontWeight:700,fontSize:16,
 display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
-<IcoPlus s={14}/> 거래 추가 (1회성·비정기)
+<IcoPlus s={14}/> {L.addTx}
 </button>
 :<div style={{background:'white',borderRadius:14,padding:14,marginBottom:12,boxShadow:'0 2px 8px rgba(0,0,0,0.08)'}}>
-<div style={{fontWeight:700,fontSize:15,marginBottom:10,color:'#1f2937'}}>📝 새 거래 입력</div>
+<div style={{fontWeight:700,fontSize:15,marginBottom:10,color:'#1f2937'}}>{L.newTx}</div>
 <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:8,marginBottom:8}}>
 <div>
-<div style={{fontSize:13,color:'#6b7280',marginBottom:3}}>유형</div>
+<div style={{fontSize:13,color:'#6b7280',marginBottom:3}}>{L.txType}</div>
 <div style={{display:'flex',gap:4}}>
 {['expense','income'].map(t=>(
 <button key={t} onClick={()=>setForm(f=>({...f,type:t}))}
 style={{flex:1,padding:'7px 0',borderRadius:8,border:'none',fontSize:14,fontWeight:700,
 background:form.type===t?(t==='income'?'#dcfce7':'#fee2e2'):'#f1f5f9',
 color:form.type===t?(t==='income'?'#15803d':'#dc2626'):'#6b7280'}}>
-{t==='income'?'💰 수입':'💸 지출'}
+{t==='income'?L.txI:L.txE}
 </button>
 ))}
 </div>
 </div>
 <div>
-<div style={{fontSize:13,color:'#6b7280',marginBottom:3}}>날짜</div>
+<div style={{fontSize:13,color:'#6b7280',marginBottom:3}}>{L.txDate}</div>
 <input type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:8,padding:'7px 8px',fontSize:15}}/>
 </div>
 <div>
-<div style={{fontSize:13,color:'#6b7280',marginBottom:3}}>내용</div>
+<div style={{fontSize:13,color:'#6b7280',marginBottom:3}}>{L.txName}</div>
 <input type="text" placeholder="예: 스타벅스, 꽁돈" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:8,padding:'7px 8px',fontSize:15}}/>
 </div>
 <div>
-<div style={{fontSize:13,color:'#6b7280',marginBottom:3}}>금액 ($)</div>
+<div style={{fontSize:13,color:'#6b7280',marginBottom:3}}>{L.txAmt}</div>
 <input type="number" placeholder="0" value={form.amount} onChange={e=>setForm(f=>({...f,amount:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:8,padding:'7px 8px',fontSize:15}}/>
 </div>
 <div>
-<div style={{fontSize:13,color:'#6b7280',marginBottom:3}}>카테고리</div>
+<div style={{fontSize:13,color:'#6b7280',marginBottom:3}}>{L.cat}</div>
 <select value={form.category} onChange={e=>{const cat=e.target.value;setForm(f=>({...f,category:cat,isOneTime:cat==='식비'?true:f.isOneTime}));}} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:8,padding:'7px 8px',fontSize:15,background:'white'}}>
 {(form.type==='income'?['수입','기타']:CAT_LIST).map(c=><option key={c} value={c}>{c}</option>)}
 </select>
 </div>
 <div style={{display:'flex',alignItems:'center',gap:6,paddingTop:18}}>
 <input type="checkbox" id="oneTime" checked={form.isOneTime} onChange={e=>setForm(f=>({...f,isOneTime:e.target.checked}))} style={{width:16,height:16,accentColor:theme.focus}}/>
-<label htmlFor="oneTime" style={{fontSize:14,color:'#374151',fontWeight:600}}>🎁 1회성</label>
+<label htmlFor="oneTime" style={{fontSize:14,color:'#374151',fontWeight:600}}>{L.oneTime}</label>
 </div>
 </div>
 <div style={{display:'flex',gap:6}}>
-<button onClick={addTx} style={{flex:1,padding:'9px 0',background:theme.tabActive,color:'white',border:'none',borderRadius:10,fontWeight:700,fontSize:15}}>추가</button>
-<button onClick={()=>setShowForm(false)} style={{padding:'9px 14px',background:'#e5e7eb',border:'none',borderRadius:10,fontSize:15}}>취소</button>
+<button onClick={addTx} style={{flex:1,padding:'9px 0',background:theme.tabActive,color:'white',border:'none',borderRadius:10,fontWeight:700,fontSize:15}}>{L.add}</button>
+<button onClick={()=>setShowForm(false)} style={{padding:'9px 14px',background:'#e5e7eb',border:'none',borderRadius:10,fontSize:15}}>{L.cancel}</button>
 </div>
 </div>
 }
 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}} className="desktop-grid">
 <div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
 <div style={{display:'flex',alignItems:'center',marginBottom:10}}>
-<div style={{fontWeight:700,fontSize:15,color:'#1f2937',flex:1}}>📋 거래 내역 ({filteredGrouped.reduce(function(s,g){return s+g[1].length;},0)}건)</div>
+<div style={{fontWeight:700,fontSize:15,color:'#1f2937',flex:1}}>{L.hist} ({filteredGrouped.reduce(function(s,g){return s+g[1].length;},0)}건)</div>
 </div>
 <div style={{display:'flex',alignItems:'center',gap:6,border:'1px solid #e5e7eb',borderRadius:9,padding:'6px 10px',background:'#fafafa',marginBottom:10}}>
 <span style={{fontSize:14,color:'#9ca3af'}}>🔍</span>
-<input type="text" placeholder="거래 검색 (이름·카테고리)" value={search} onChange={e=>setSrch(e.target.value)}
+<input type="text" placeholder={L.srch} value={search} onChange={e=>setSrch(e.target.value)}
 style={{flex:1,border:'none',background:'none',fontSize:14,outline:'none',color:'#374151'}}/>
 {search&&<button onClick={()=>setSrch('')} style={{background:'none',border:'none',color:'#9ca3af',cursor:'pointer',fontSize:14,padding:0}}>✕</button>}
 </div>
@@ -1382,7 +1401,8 @@ fontWeight:800,cursor:loading||!input.trim()?'default':'pointer',transition:'all
 </div>
 </>;
 }
-function Dashboard({user, onLogout, theme, themeIdx, setThemeIdx}){
+function Dashboard({user, onLogout, theme, themeIdx, setThemeIdx, lang, setLang}){
+const L=LANGS[lang||'kr'];
 const displayName = user ? user.charAt(0).toUpperCase()+user.slice(1) : '';
 const CK = k => `hb_${user}_${k}`;
 const [tab,setTab]=useState('overview');
@@ -1452,6 +1472,27 @@ document.body.style.background=theme.pageBg;
 document.documentElement.style.setProperty('--focus-color',theme.focus);
 },[theme]);
 useEffect(()=>{const t=setInterval(()=>setQuoteIdx(i=>(i+1)%FINANCE_QUOTES.length),9000);return()=>clearInterval(t);},[]);
+useEffect(()=>{
+const apply=()=>{
+const ym=monthKey();
+const sk=CK('sched_'+ym);
+const applied=LS.get(sk,[]);
+const today=new Date().getDate();
+const due=expenses.filter(e=>e.day&&Number(e.day)<=today&&!applied.includes(e.id));
+if(!due.length)return;
+const deduction=due.reduce((s,e)=>s+e.amount,0);
+LS.set(sk,[...applied,...due.map(e=>e.id)]);
+if(cashAccounts.length===0){
+setCB(p=>Math.round((p-deduction)*100)/100);
+}else{
+const idx=cashAccounts.findIndex(a=>a.assetType!=='investment');
+if(idx>=0)setCashAccts(p=>p.map((a,i)=>i===idx?{...a,balance:Math.round((a.balance-deduction)*100)/100}:a));
+else setCB(p=>Math.round((p-deduction)*100)/100);
+}
+};
+const t=setTimeout(apply,1600);
+return()=>clearTimeout(t);
+},[expenses.map(e=>e.id+'_'+(e.day||0)).join('|')]);
 const totalInc=useMemo(()=>incomes.reduce((s,i)=>s+(i.type==='annual'?i.amount/12:i.amount),0),[incomes]);
 const totalExp=useMemo(()=>expenses.reduce((s,e)=>s+e.amount,0),[expenses]);
 const totalDPay=useMemo(()=>debts.reduce((s,d)=>s+d.monthlyPayment,0),[debts]);
@@ -1505,18 +1546,18 @@ setCB(0);setSG(50000);setPM(60);
 setInc(DEF_INC);setExp(DEF_EXP);setDbt(DEF_DBT);setInv(DEF_INV);setTx(DEF_TXN);setCashAccts([]);
 };
 const TABS=[
-{k:'overview',icon:'🏠',label:'대시보드'},
-{k:'ledger',icon:'📒',label:'가계부'},
-{k:'investments',icon:'📈',label:'투자'},
-{k:'projection',icon:'🔮',label:'예측'},
+{k:'overview',icon:'🏠',label:L.t[0]},
+{k:'ledger',icon:'📒',label:L.t[1]},
+{k:'investments',icon:'📈',label:L.t[2]},
+{k:'projection',icon:'🔮',label:L.t[3]},
 ];
 const cards=[
-{l:'월 수입',v:$$(totalInc),sub:`${incomes.length}개 수입원`,c:'#22c55e',border:'#bbf7d0'},
-{l:'월 지출 합계',v:$$(totalExp+totalDPay),sub:`고정 ${$$(totalExp)} + 부채 ${$$(totalDPay)}`,c:'#ef4444',border:'#fecaca'},
-{l:'월 순 현금흐름',v:(netFlow>=0?'+':'')+$$(netFlow),sub:netFlow>=0?'💚 저축 가능':'⚠️ 지출 초과',c:netFlow>=0?'#3b82f6':'#f97316',border:netFlow>=0?'#bfdbfe':'#fed7aa'},
-{l:'투자 잔고',v:$$(totalInvBal),sub:`${investments.length+cashAccounts.filter(a=>a.assetType==='investment').length}개 계좌`,c:'#8b5cf6',border:'#ddd6fe'},
-{l:'총 자산',v:$$(totalAssets),sub:`현금 ${$$(effectiveBalance)} + 투자 ${$$(totalInvBal)}${linkedInvBal>0?` (연동 ${$$(linkedInvBal)} 포함)`:''}`,c:'#4f46e5',border:'#ddd6fe'},
-{l:'순자산 (Net Worth)',v:$$(netWorth),sub:`총자산 - 부채 ${$$(totalDAmt)}`,c:netWorth>=0?theme.tabActive:'#ef4444',border:netWorth>=0?'#fef3c7':'#fecaca'},
+{l:L.c[0],v:$$(totalInc),sub:`${incomes.length}개 수입원`,c:'#22c55e',border:'#bbf7d0'},
+{l:L.c[1],v:$$(totalExp+totalDPay),sub:`${$$(totalExp)} + ${$$(totalDPay)}`,c:'#ef4444',border:'#fecaca'},
+{l:L.c[2],v:(netFlow>=0?'+':'')+$$(netFlow),sub:netFlow>=0?'💚 저축 가능':'⚠️ 지출 초과',c:netFlow>=0?'#3b82f6':'#f97316',border:netFlow>=0?'#bfdbfe':'#fed7aa'},
+{l:L.c[3],v:$$(totalInvBal),sub:`${investments.length+cashAccounts.filter(a=>a.assetType==='investment').length}개 계좌`,c:'#8b5cf6',border:'#ddd6fe'},
+{l:L.c[4],v:$$(totalAssets),sub:`${$$(effectiveBalance)} + ${$$(totalInvBal)}`,c:'#4f46e5',border:'#ddd6fe'},
+{l:L.c[5],v:$$(netWorth),sub:`- ${$$(totalDAmt)}`,c:netWorth>=0?theme.tabActive:'#ef4444',border:netWorth>=0?'#fef3c7':'#fecaca'},
 ];
 return(
 <div style={{minHeight:'100vh',background:theme.pageBg}}>
@@ -1568,12 +1609,16 @@ borderRadius:20,color:theme.accent,fontSize:15,fontWeight:700}}>
 {}
 {FB_READY&&syncStatus&&(
 <span style={{fontSize:12,color:syncStatus==='saved'?'rgba(255,255,255,0.6)':syncStatus==='saving'?'rgba(255,255,255,0.4)':'#fca5a5',letterSpacing:0.5}}>
-{syncStatus==='saving'?'⏳ 동기화 중':syncStatus==='saved'?'✓ 저장됨':'⚠️ 저장 오류'}
+{syncStatus==='saving'?L.syncSaving||'⏳':syncStatus==='saved'?L.syncSaved||'✓':'⚠️'}
 </span>
 )}
-<button onClick={reset} style={{padding:'6px 10px',background:'rgba(255,255,255,0.13)',border:'1px solid rgba(255,255,255,0.28)',borderRadius:20,color:'rgba(255,255,255,0.88)',fontSize:13,fontWeight:600}}>초기화</button>
+<button onClick={()=>setLang(lang==='kr'?'en':'kr')}
+style={{padding:'5px 10px',background:'rgba(255,255,255,0.15)',border:'1px solid rgba(255,255,255,0.3)',borderRadius:20,color:'white',fontSize:13,fontWeight:800,letterSpacing:1}}>
+{lang==='kr'?'EN':'KR'}
+</button>
+<button onClick={reset} style={{padding:'6px 10px',background:'rgba(255,255,255,0.13)',border:'1px solid rgba(255,255,255,0.28)',borderRadius:20,color:'rgba(255,255,255,0.88)',fontSize:13,fontWeight:600}}>{L.reset}</button>
 <button onClick={logout} style={{display:'flex',alignItems:'center',gap:4,padding:'6px 12px',background:'rgba(255,255,255,0.13)',border:'1px solid rgba(255,255,255,0.28)',borderRadius:20,color:'rgba(255,255,255,0.92)',fontSize:14,fontWeight:600}}>
-<IcoOut s={13}/>로그아웃
+<IcoOut s={13}/>{L.logout}
 </button>
 </div>
 </div>
@@ -1581,7 +1626,7 @@ borderRadius:20,color:theme.accent,fontSize:15,fontWeight:700}}>
 {}
 <div style={{background:theme.nwGrad,padding:'10px 20px',borderBottom:'1px solid rgba(255,255,255,0.1)'}}>
 <div style={{maxWidth:1120,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
-<span style={{color:'rgba(255,255,255,0.9)',fontSize:14,fontWeight:600}}>순자산 (Net Worth)</span>
+<span style={{color:'rgba(255,255,255,0.9)',fontSize:14,fontWeight:600}}>{L.nw}</span>
 <span style={{color:netWorth>=0?theme.nwPos:'#f87171',fontSize:22,fontWeight:900,letterSpacing:1}}>{$$(netWorth)}</span>
 <span style={{color:'rgba(255,255,255,0.4)',fontSize:13}}>= {$$(totalAssets)} − {$$(totalDAmt)}</span>
 </div>
@@ -1662,7 +1707,7 @@ boxShadow:`0 3px 14px ${_m.c}18`,position:'relative',overflow:'hidden'}}>
 </div>
 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:10,alignItems:'flex-start'}} className="stats-3">
 <div>
-<label style={{fontSize:14,fontWeight:700,color:'#6b7280',display:'block',marginBottom:5}}>💰 현금 잔고 ($)</label>
+<label style={{fontSize:14,fontWeight:700,color:'#6b7280',display:'block',marginBottom:5}}>{L.cashBal}</label>
 {cashAccounts.length>0?(
 <div>
 <div style={{border:`2px solid ${theme.tabBorder}`,borderRadius:10,padding:'9px 11px',display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
@@ -1714,12 +1759,12 @@ style={{width:88,border:`1px solid ${isInv?'#ddd6fe':'#e5e7eb'}`,borderRadius:7,
 )}
 </div>
 <div>
-<label style={{fontSize:14,fontWeight:700,color:'#6b7280',display:'block',marginBottom:5}}>🎯 저축 목표 ($)</label>
+<label style={{fontSize:14,fontWeight:700,color:'#6b7280',display:'block',marginBottom:5}}>{L.savGoal}</label>
 <input type="number" value={savingsGoal} onFocus={e=>e.target.select()} onChange={e=>setSG(parseFloat(e.target.value)||0)}
 style={{width:'100%',border:'2px solid #e5e7eb',borderRadius:10,padding:'9px 11px',fontSize:15,outline:'none'}}/>
 </div>
 <div>
-<label style={{fontSize:14,fontWeight:700,color:'#6b7280',display:'block',marginBottom:5}}>📅 예측 기간</label>
+<label style={{fontSize:14,fontWeight:700,color:'#6b7280',display:'block',marginBottom:5}}>{L.projPd}</label>
 <select value={projMonths} onChange={e=>setPM(parseInt(e.target.value))}
 style={{width:'100%',border:'2px solid #e5e7eb',borderRadius:10,padding:'9px 11px',fontSize:16,background:'white',outline:'none'}}>
 <option value={12}>1년</option><option value={24}>2년</option><option value={36}>3년</option>
@@ -1727,14 +1772,14 @@ style={{width:'100%',border:'2px solid #e5e7eb',borderRadius:10,padding:'9px 11p
 </select>
 </div>
 <div style={{textAlign:'center',padding:'10px 8px',borderRadius:12,background:theme.badgeBg,border:`1.5px solid ${theme.badgeBorder}`,boxShadow:`0 2px 8px ${theme.tabActive}15`}}>
-<div style={{fontSize:14,color:'#6b7280',fontWeight:700,marginBottom:3}}>🔮 예측 순자산</div>
+<div style={{fontSize:14,color:'#6b7280',fontWeight:700,marginBottom:3}}>{L.projNW}</div>
 <div style={{fontSize:18,fontWeight:900,color:theme.tabActive,lineHeight:1.1}}>{$$(projData[projData.length-1]?.netWorth)}</div>
 <div style={{fontSize:14,color:'#9ca3af',marginTop:3}}>{projMonths>=12?`${projMonths/12}년 후`:`${projMonths}개월 후`}</div>
 </div>
 </div>
 </div>
-{tab==='overview'&&<OverviewTab incomes={incomes} setInc={setInc} expenses={expenses} setExp={setExp} debts={debts} setDbt={setDbt} totalInc={totalInc} totalExp={totalExp} totalDPay={totalDPay} netFlow={netFlow} transactions={transactions} theme={theme}/>}
-{tab==='ledger'&&<LedgerTab transactions={transactions} setTx={setTx} expenses={expenses} theme={theme} currentBalance={currentBalance} setCB={setCB} cashAccounts={cashAccounts} setCashAccts={setCashAccts}/>}
+{tab==='overview'&&<OverviewTab incomes={incomes} setInc={setInc} expenses={expenses} setExp={setExp} debts={debts} setDbt={setDbt} totalInc={totalInc} totalExp={totalExp} totalDPay={totalDPay} netFlow={netFlow} transactions={transactions} theme={theme} L={L}/>}
+{tab==='ledger'&&<LedgerTab transactions={transactions} setTx={setTx} expenses={expenses} theme={theme} currentBalance={currentBalance} setCB={setCB} cashAccounts={cashAccounts} setCashAccts={setCashAccts} L={L}/>}
 {tab==='investments'&&<InvestmentTab investments={investments} setInv={setInv} cashAccounts={cashAccounts} setCashAccts={setCashAccts}/>}
 {tab==='projection'&&<ProjectionTab currentBalance={currentBalance} setCB={setCB} savingsGoal={savingsGoal} setSG={setSG} projMonths={projMonths} setPM={setPM} projData={projData.filter((_,i)=>i%Math.max(1,Math.floor(projMonths/20))===0)} milestones={milestones} totalInc={totalInc} totalExp={totalExp} totalDPay={totalDPay}/>}
 <div style={{textAlign:'center',fontSize:12,color:'#cbd5e1',marginTop:20,paddingBottom:20}}>
@@ -1773,10 +1818,12 @@ const t=LS.get('hb_theme',0);
 return(typeof t==='number'&&t>=0&&t<THEMES.length)?t:0;
 });
 const saveTheme=(idx)=>{ setThemeIdx(idx); LS.set('hb_theme',idx); };
+const [lang,setLang]=useState(()=>LS.get('hb_lang','kr'));
+const saveLang=(l)=>{ setLang(l); LS.set('hb_lang',l); };
 const theme=THEMES[themeIdx];
-if(!user) return <AuthScreen onLogin={(un)=>setUser(un)} theme={theme}/>;
+if(!user) return <AuthScreen onLogin={(un)=>setUser(un)} theme={theme} lang={lang}/>;
 return <Dashboard user={user} onLogout={()=>{ LS.del('hb_session'); setUser(null); }}
-theme={theme} themeIdx={themeIdx} setThemeIdx={saveTheme}/>;
+theme={theme} themeIdx={themeIdx} setThemeIdx={saveTheme} lang={lang} setLang={saveLang}/>;
 }
 document.getElementById('loading').style.display='none';
 ReactDOM.createRoot(document.getElementById('root')).render(<ErrorBoundary><App/></ErrorBoundary>);
