@@ -983,8 +983,7 @@ color:editTxVals.type===tp?(tp==='income'?'#15803d':'#dc2626'):'#6b7280'}}>
 <div style={{fontSize:12,color:'#6b7280',marginBottom:2}}>메모</div>
 <input type="text" value={editTxVals.memo||''} onChange={e=>setEditTxVals(p=>({...p,memo:e.target.value}))} placeholder="메모..." style={{width:'100%',border:'1px solid #d1d5db',borderRadius:7,padding:'5px 8px',fontSize:14}}/>
 </div>
-</div>
-<div style={{display:'flex',gap:6}}>
+<div style={{display:'flex',gap:6,marginTop:8}}>
 <button onClick={()=>updateTx(t.id)} style={{display:'flex',alignItems:'center',gap:4,padding:'5px 14px',background:'#22c55e',color:'white',border:'none',borderRadius:8,fontSize:14,fontWeight:700}}><IcoCheck/>저장</button>
 <button onClick={()=>setEditTxId(null)} style={{padding:'5px 10px',background:'#e5e7eb',border:'none',borderRadius:8,fontSize:14}}>취소</button>
 </div>
