@@ -905,7 +905,7 @@ style={{flex:1,border:'none',background:'none',fontSize:14,outline:'none',color:
 {search&&<button onClick={()=>setSrch('')} style={{background:'none',border:'none',color:'#9ca3af',cursor:'pointer',fontSize:14,padding:0}}>✕</button>}
 </div>
 {search&&filteredGrouped.length===0&&<div style={{textAlign:'center',padding:'20px 0',color:'#9ca3af',fontSize:14}}>"{search}" 검색 결과 없음</div>}
-{viewMode==='calendar'?(()=>{
+{viewMode==='calendar'&&(()=>{
 const [cy,cm]=mth.split('-').map(Number);
 const firstDay=new Date(cy,cm-1,1).getDay();
 const daysInMonth=new Date(cy,cm,0).getDate();
@@ -915,6 +915,7 @@ const cells=[];
 for(let i=0;i<firstDay;i++)cells.push(null);
 for(let d=1;d<=daysInMonth;d++)cells.push(d);
 const WD=['일','월','화','수','목','금','토'];
+const today=new Date();
 return(<div>
 <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2,marginBottom:4}}>
 {WD.map(w=><div key={w} style={{textAlign:'center',fontSize:11,fontWeight:700,color:'#9ca3af',padding:'4px 0'}}>{w}</div>)}
@@ -925,21 +926,24 @@ if(!d)return<div key={i}/>;
 const dayTxs=txByDay[d]||[];
 const inc=dayTxs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
 const exp=dayTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
-const today=new Date();
 const isToday=cy===today.getFullYear()&&cm-1===today.getMonth()&&d===today.getDate();
-return(<div key={i} style={{minHeight:52,background:isToday?`${theme.tabActive}15`:'#fafafa',borderRadius:6,border:isToday?`1.5px solid ${theme.tabActive}`:'1px solid #f1f5f9',padding:'3px 4px',cursor:dayTxs.length>0?'pointer':'default'}} onClick={()=>{if(dayTxs.length>0)setSrch(mth+'-'+String(d).padStart(2,'0'));}}>
+return(<div key={i} onClick={()=>{if(dayTxs.length)setSrch(mth+'-'+String(d).padStart(2,'0'));}}
+style={{minHeight:52,background:isToday?`${theme.tabActive}15`:'#fafafa',borderRadius:6,border:isToday?`1.5px solid ${theme.tabActive}`:'1px solid #f1f5f9',padding:'3px 4px',cursor:dayTxs.length?'pointer':'default'}}>
 <div style={{fontSize:12,fontWeight:700,color:isToday?theme.tabActive:'#374151',marginBottom:2}}>{d}</div>
 {exp>0&&<div style={{fontSize:10,color:'#dc2626',fontWeight:600,lineHeight:1.2}}>-{$$(exp)}</div>}
 {inc>0&&<div style={{fontSize:10,color:'#16a34a',fontWeight:600,lineHeight:1.2}}>+{$$(inc)}</div>}
-{dayTxs.length>0&&<div style={{display:'flex',gap:1,marginTop:1,flexWrap:'wrap'}}>{dayTxs.slice(0,3).map((t,j)=><span key={j} style={{width:5,height:5,borderRadius:'50%',background:t.type==='income'?'#22c55e':'#ef4444',display:'inline-block'}}/>)}</div>}
-</div>);})}
+{dayTxs.length>0&&<div style={{display:'flex',gap:1,marginTop:1}}>{dayTxs.slice(0,3).map((t,j)=><span key={j} style={{width:5,height:5,borderRadius:'50%',background:t.type==='income'?'#22c55e':'#ef4444',display:'inline-block'}}/>)}</div>}
+</div>);
+})}
 </div>
 {search&&<div style={{marginTop:8,fontSize:12,color:'#6b7280'}}>날짜 필터 활성 — 검색창 X를 눌러 해제</div>}
-</div>)
-})()
-:(!search&&filteredGrouped.length===0
-?<div style={{textAlign:'center',padding:'32px 0',color:'#9ca3af',fontSize:15}}>이달 거래 내역이 없습니다<br/>위 폼에서 추가하세요</div>
-:<div style={{maxHeight:520,overflowY:'auto'}}>
+</div>);
+})()}
+{viewMode!=='calendar'&&!search&&filteredGrouped.length===0&&(
+<div style={{textAlign:'center',padding:'32px 0',color:'#9ca3af',fontSize:15}}>이달 거래 내역이 없습니다<br/>위 폼에서 추가하세요</div>
+)}
+{viewMode!=='calendar'&&(search||filteredGrouped.length>0)&&(
+<div style={{maxHeight:520,overflowY:'auto'}}>
 {filteredGrouped.map(([date,txns])=>(
 <div key={date} style={{marginBottom:14}}>
 <div style={{fontSize:13,fontWeight:700,color:'#6b7280',marginBottom:5,paddingLeft:2,borderBottom:'1px solid #f1f5f9',paddingBottom:4}}>{date}</div>
@@ -947,42 +951,28 @@ return(<div key={i} style={{minHeight:52,background:isToday?`${theme.tabActive}1
 editTxId===t.id
 ?<div key={t.id} style={{padding:'10px 12px',borderRadius:10,background:'#fefce8',border:'2px solid #fbbf24',marginBottom:5}}>
 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginBottom:8}}>
-<div>
-<div style={{fontSize:12,color:'#6b7280',marginBottom:2}}>내용</div>
-<input type="text" value={editTxVals.name} onChange={e=>setEditTxVals(p=>({...p,name:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:7,padding:'5px 8px',fontSize:14}}/>
-</div>
-<div>
-<div style={{fontSize:12,color:'#6b7280',marginBottom:2}}>금액 ($)</div>
-<input type="number" value={editTxVals.amount} onChange={e=>setEditTxVals(p=>({...p,amount:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:7,padding:'5px 8px',fontSize:14}}/>
-</div>
-<div>
-<div style={{fontSize:12,color:'#6b7280',marginBottom:2}}>유형</div>
+<div><div style={{fontSize:12,color:'#6b7280',marginBottom:2}}>내용</div>
+<input value={editTxVals.name} onChange={e=>setEditTxVals(p=>({...p,name:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:7,padding:'5px 8px',fontSize:14}}/></div>
+<div><div style={{fontSize:12,color:'#6b7280',marginBottom:2}}>금액</div>
+<input type="number" value={editTxVals.amount} onChange={e=>setEditTxVals(p=>({...p,amount:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:7,padding:'5px 8px',fontSize:14}}/></div>
+<div><div style={{fontSize:12,color:'#6b7280',marginBottom:2}}>유형</div>
 <div style={{display:'flex',gap:4}}>
 {['expense','income'].map(tp=>(
 <button key={tp} onClick={()=>setEditTxVals(p=>({...p,type:tp}))}
 style={{flex:1,padding:'5px 0',borderRadius:6,border:'none',fontSize:13,fontWeight:700,
 background:editTxVals.type===tp?(tp==='income'?'#dcfce7':'#fee2e2'):'#f1f5f9',
 color:editTxVals.type===tp?(tp==='income'?'#15803d':'#dc2626'):'#6b7280'}}>
-{tp==='income'?'💰 수입':'💸 지출'}
-</button>
-))}
-</div>
-</div>
-<div>
-<div style={{fontSize:12,color:'#6b7280',marginBottom:2}}>날짜</div>
-<input type="date" value={editTxVals.date} onChange={e=>setEditTxVals(p=>({...p,date:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:7,padding:'5px 8px',fontSize:14}}/>
-</div>
-<div>
-<div style={{fontSize:12,color:'#6b7280',marginBottom:2}}>카테고리</div>
+{tp==='income'?'💰 수입':'💸 지출'}</button>))}
+</div></div>
+<div><div style={{fontSize:12,color:'#6b7280',marginBottom:2}}>날짜</div>
+<input type="date" value={editTxVals.date} onChange={e=>setEditTxVals(p=>({...p,date:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:7,padding:'5px 8px',fontSize:14}}/></div>
+<div><div style={{fontSize:12,color:'#6b7280',marginBottom:2}}>카테고리</div>
 <select value={editTxVals.category} onChange={e=>setEditTxVals(p=>({...p,category:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:7,padding:'5px 8px',fontSize:14,background:'white'}}>
 {(editTxVals.type==='income'?['수입','기타']:CAT_LIST).map(c=><option key={c} value={c}>{c}</option>)}
-</select>
+</select></div>
 </div>
-</div>
-<div>
-<div style={{fontSize:12,color:'#6b7280',marginBottom:2}}>메모</div>
-<input type="text" value={editTxVals.memo||''} onChange={e=>setEditTxVals(p=>({...p,memo:e.target.value}))} placeholder="메모..." style={{width:'100%',border:'1px solid #d1d5db',borderRadius:7,padding:'5px 8px',fontSize:14}}/>
-</div>
+<div><div style={{fontSize:12,color:'#6b7280',marginBottom:2}}>메모</div>
+<input value={editTxVals.memo||''} onChange={e=>setEditTxVals(p=>({...p,memo:e.target.value}))} placeholder="메모..." style={{width:'100%',border:'1px solid #d1d5db',borderRadius:7,padding:'5px 8px',fontSize:14}}/></div>
 <div style={{display:'flex',gap:6,marginTop:8}}>
 <button onClick={()=>updateTx(t.id)} style={{display:'flex',alignItems:'center',gap:4,padding:'5px 14px',background:'#22c55e',color:'white',border:'none',borderRadius:8,fontSize:14,fontWeight:700}}><IcoCheck/>저장</button>
 <button onClick={()=>setEditTxId(null)} style={{padding:'5px 10px',background:'#e5e7eb',border:'none',borderRadius:8,fontSize:14}}>취소</button>
@@ -998,11 +988,11 @@ border:t.auto?'1px dashed #bfdbfe':'1px solid transparent',marginBottom:5}}>
 {t.auto&&<span style={{marginLeft:4,fontSize:11,background:'#dbeafe',padding:'1px 6px',borderRadius:20,color:'#1d4ed8',fontWeight:700}}>🔁 자동</span>}
 {t.isOneTime&&<span style={{marginLeft:4,fontSize:11,background:'#fef3c7',padding:'1px 5px',borderRadius:20,color:'#92400e'}}>1회</span>}
 </div>
-{t.memo&&<div style={{fontSize:12,color:'#9ca3af',marginTop:1,paddingLeft:1}}>📝 {t.memo}</div>}
+{t.memo&&<div style={{fontSize:12,color:'#9ca3af',marginTop:1}}>📝 {t.memo}</div>}
 </div>
 <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
 <span style={{fontSize:16,fontWeight:800,color:t.type==='income'?'#15803d':'#dc2626'}}>{t.type==='income'?'+':'-'}{$$(t.amount)}</span>
-{!t.auto&&<button title="즐겨찾기" onClick={()=>toggleFav(t)} style={{background:'none',border:'none',color:isFav(t)?'#f59e0b':'#d1d5db',padding:2,display:'flex',fontSize:14}}>★</button>}
+{!t.auto&&<button title="즐겨찾기" onClick={()=>toggleFav(t)} style={{background:'none',border:'none',color:isFav(t)?'#f59e0b':'#d1d5db',padding:2,fontSize:14}}>★</button>}
 {!t.auto&&<button onClick={()=>{setEditTxId(t.id);setEditTxVals({name:t.name,amount:t.amount,type:t.type,date:t.date,category:t.category||'기타',memo:t.memo||''});}} style={{background:'none',border:'none',color:'#93c5fd',padding:2,display:'flex'}}><IcoEdit s={13}/></button>}
 {!t.auto&&<button onClick={()=>delTx(t.id)} style={{background:'none',border:'none',color:'#fca5a5',padding:2,display:'flex'}}><IcoTrash s={13}/></button>}
 </div>
@@ -1011,7 +1001,6 @@ border:t.auto?'1px dashed #bfdbfe':'1px solid transparent',marginBottom:5}}>
 </div>
 ))}
 </div>
-)
 )}
 </div>
 {showAnnual&&(()=>{
@@ -1823,7 +1812,7 @@ if(df) r.push({icon:'🔓',label:'부채 완전 상환',month:df.m});
 const pn=projData.find(d=>d.netWorth>=0&&d.m>0);
 if(pn&&netWorth<0) r.push({icon:'📈',label:'순자산 플러스 전환',month:pn.m});
 return r;
-},[projData,savingsGoal,netWorth]);
+},[projData,savingsGoal,netWorth,currency,kRate]);
 const logout=()=>{ onLogout(); };
 const reset=()=>{
 if(!confirm(`${displayName}의 모든 데이터를 초기화할까요?`))return;
