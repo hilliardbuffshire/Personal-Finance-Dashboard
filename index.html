@@ -101,7 +101,10 @@ document.getElementById('ls').style.color=sub[idx];
 document.documentElement.style.setProperty('--focus-color',acc[idx]);
 })();
 window.onerror=function(m){
-document.getElementById('loading').style.display='none';
+if(m==='Script error.')return;
+var ld=document.getElementById('loading');
+if(!ld||ld.style.display==='none')return;
+ld.style.display='none';
 document.getElementById('root').innerHTML='<div style="padding:24px;color:#dc2626;background:#fee2e2;margin:24px;border-radius:12px;font-size:14px">❌ 오류: '+m+'<br><br>인터넷 연결을 확인하고 새로고침 해주세요.</div>';
 };
 </script>
@@ -119,7 +122,6 @@ messagingSenderId: "309757618979",
 appId:             "1:309757618979:web:79fbdc11fbfbcdffa9ba96"
 };
 const AUTH_DOMAIN = "@hilliard.buffshire.internal";
-const FB_READY = true;
 let db = null, fbAuth = null;
 try {
 const fbApp = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(FIREBASE_CONFIG);
@@ -148,19 +150,6 @@ if(e.code==='auth/user-not-found'||e.code==='auth/invalid-credential') return { 
 if(e.code==='auth/wrong-password') return { ok:false, msg:'비밀번호가 틀렸습니다.' };
 return { ok:false, msg:`로그인 실패: ${e.message}` };
 }
-},
-};
-const LocalAuth = {
-register: (un, pw) => {
-if (LS.get(`hb_pw_${un}`, null)) return { ok:false, msg:'이미 사용 중인 아이디입니다.' };
-LS.set(`hb_pw_${un}`, pw);
-return { ok:true };
-},
-login: (un, pw) => {
-const stored = LS.get(`hb_pw_${un}`, null);
-if (!stored) return { ok:false, msg:'존재하지 않는 아이디입니다.' };
-if (stored !== pw) return { ok:false, msg:'비밀번호가 틀렸습니다.' };
-return { ok:true };
 },
 };
 let _mem = {};
@@ -322,18 +311,8 @@ if(tab==='register'&&pw.length<6){setErr('비밀번호는 6자 이상이어야 �
 setLoading(true);setErr('');
 const un=username.trim().toLowerCase();
 try{
-let result;
-if(fbAuth){
-result = tab==='login' ? await FSAuth.login(un,pw) : await FSAuth.register(un,pw);
-} else {
-result = tab==='login' ? LocalAuth.login(un,pw) : LocalAuth.register(un,pw);
-}
-if(fbAuth){
+const result=tab==='login'?await FSAuth.login(un,pw):await FSAuth.register(un,pw);
 if(!result.ok){setErr(result.msg);return;}
-} else {
-if(!result.ok){setErr(result.msg);return;}
-onLogin(un);
-}
 }catch(e){
 }finally{
 setLoading(false);
@@ -386,14 +365,8 @@ borderRadius:12,fontSize:15,fontWeight:800,letterSpacing:1,opacity:loading?0.7:1
 boxShadow:'0 4px 15px rgba(0,0,0,0.2)'}}>
 {(()=>{const L=LANGS[lang||'kr'];return loading?L.busy:(tab==='login'?L.loginBtn:L.regBtn);})()}
 </button>
-{!FB_READY&&(
-<div style={{marginTop:12,padding:'10px 12px',background:'#fef3c7',borderRadius:8,fontSize:13,color:'#92400e',lineHeight:1.7}}>
-⚙️ <strong>Firebase 미설정 상태</strong><br/>
-코드의 <code style={{background:'#fde68a',padding:'0 3px',borderRadius:3}}>FIREBASE_CONFIG</code>를 실제 Firebase 프로젝트 값으로 교체하면 어느 기기에서도 로그인할 수 있습니다.
-</div>
-)}
-{tab==='register'&&FB_READY&&<p style={{textAlign:'center',fontSize:13,color:'#9ca3af',marginTop:12}}>✅ 아이디+비밀번호로 어느 기기에서나 로그인 가능</p>}
-{tab==='login'&&FB_READY&&<p style={{textAlign:'center',fontSize:13,color:'#9ca3af',marginTop:12}}>계정이 없으신가요? '새 계정'에서 가입하세요.</p>}
+{tab==='register'&&<p style={{textAlign:'center',fontSize:13,color:'#9ca3af',marginTop:12}}>✅ 아이디+비밀번호로 어느 기기에서나 로그인 가능</p>}
+{tab==='login'&&<p style={{textAlign:'center',fontSize:13,color:'#9ca3af',marginTop:12}}>계정이 없으신가요? '새 계정'에서 가입하세요.</p>}
 </div>
 </div>
 </div>
@@ -644,8 +617,7 @@ return(
 }
 function LedgerTab({transactions,setTx,expenses,theme,currentBalance,setCB,cashAccounts,setCashAccts,L}){
 const [mth,setMth]=useState(monthKey());
-const [form,setForm]=useState({date:new Date().toISOString().slice(0,10),name:'',amount:'',type:'expense',category:'식비',isOneTime:false});
-const [showForm,setShowForm]=useState(false);
+const [form,setForm]=useState({date:new Date().toISOString().slice(0,10),name:'',amount:'',type:'expense',category:'식비',isOneTime:true});
 const [search,setSrch]=useState('');
 const [showBudget,setShowBudget]=useState(false);
 const [budgets,setBudgets]=useState(()=>{try{return JSON.parse(localStorage.getItem('hb_cat_budgets')||'{}')}catch(e){return{}}});
@@ -703,8 +675,7 @@ if(!form.name||!form.amount)return;
 const amt=parseFloat(form.amount)||0;
 setTx(p=>[...p,{...form,amount:amt,id:gid()}]);
 adjBal(form.type==='income'?amt:-amt);
-setForm(f=>({...f,name:'',amount:'',isOneTime:false}));
-setShowForm(false);
+setForm(f=>({...f,name:'',amount:'',isOneTime:true}));
 };
 const delTx=(id)=>{
 const tx=transactions.find(t=>t.id===id);
@@ -794,29 +765,12 @@ background:paid?'#dcfce7':'#dbeafe',color:paid?'#15803d':'#1d4ed8',border:`1px s
 </div>
 </div>
 )}
-{!showForm&&recentTx.length>0&&(
-<div style={{background:'white',borderRadius:12,padding:'10px 12px',marginBottom:10,boxShadow:'0 1px 3px rgba(0,0,0,0.05)'}}>
-<div style={{fontSize:12,color:'#9ca3af',fontWeight:700,marginBottom:7,letterSpacing:0.5}}>⚡ 최근 거래 빠른 추가</div>
-<div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
-{recentTx.map((t,i)=>(
-<button key={i} onClick={()=>{setTx(p=>[...p,{...t,id:gid(),date:new Date().toISOString().slice(0,10),auto:false,isOneTime:true}]);adjBal(t.type==='income'?t.amount:-t.amount);}}
-style={{padding:'4px 10px',borderRadius:20,border:'1px solid #e5e7eb',background:'#f8fafc',fontSize:13,cursor:'pointer',color:'#374151',fontWeight:600,display:'flex',alignItems:'center',gap:4}}>
-<span style={{fontSize:11,background:t.type==='income'?'#dcfce7':'#fee2e2',color:t.type==='income'?'#15803d':'#dc2626',borderRadius:4,padding:'0 4px',fontWeight:700}}>{t.type==='income'?'+':'-'}</span>
-{t.name} <span style={{color:'#9ca3af',fontSize:12}}>{$$(t.amount)}</span>
-</button>
-))}
+<div style={{background:'white',borderRadius:14,padding:'16px 18px',marginBottom:14,boxShadow:'0 2px 12px rgba(0,0,0,0.09)',border:`2px solid ${theme.tabBorder}`}}>
+<div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
+<span style={{fontSize:18}}>📝</span>
+<span style={{fontWeight:800,fontSize:16,color:theme.tabActive}}>{L.newTx}</span>
 </div>
-</div>
-)}
-{!showForm
-?<button onClick={()=>setShowForm(true)} style={{width:'100%',marginBottom:12,padding:'11px 0',
-background:theme.btnGrad,color:'white',border:'none',borderRadius:12,fontWeight:700,fontSize:16,
-display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
-<IcoPlus s={14}/> {L.addTx}
-</button>
-:<div style={{background:'white',borderRadius:14,padding:14,marginBottom:12,boxShadow:'0 2px 8px rgba(0,0,0,0.08)'}}>
-<div style={{fontWeight:700,fontSize:15,marginBottom:10,color:'#1f2937'}}>{L.newTx}</div>
-<div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:8,marginBottom:8}}>
+<div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:8,marginBottom:10}}>
 <div>
 <div style={{fontSize:13,color:'#6b7280',marginBottom:3}}>{L.txType}</div>
 <div style={{display:'flex',gap:4}}>
@@ -836,15 +790,15 @@ color:form.type===t?(t==='income'?'#15803d':'#dc2626'):'#6b7280'}}>
 </div>
 <div>
 <div style={{fontSize:13,color:'#6b7280',marginBottom:3}}>{L.txName}</div>
-<input type="text" placeholder="예: 스타벅스, 꽁돈" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:8,padding:'7px 8px',fontSize:15}}/>
+<input type="text" placeholder="예: 스타벅스, 월세" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} onKeyDown={e=>e.key==='Enter'&&addTx()} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:8,padding:'7px 8px',fontSize:15}}/>
 </div>
 <div>
 <div style={{fontSize:13,color:'#6b7280',marginBottom:3}}>{L.txAmt}</div>
-<input type="number" placeholder="0" value={form.amount} onChange={e=>setForm(f=>({...f,amount:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:8,padding:'7px 8px',fontSize:15}}/>
+<input type="number" placeholder="0" value={form.amount} onChange={e=>setForm(f=>({...f,amount:e.target.value}))} onKeyDown={e=>e.key==='Enter'&&addTx()} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:8,padding:'7px 8px',fontSize:15}}/>
 </div>
 <div>
 <div style={{fontSize:13,color:'#6b7280',marginBottom:3}}>{L.cat}</div>
-<select value={form.category} onChange={e=>{const cat=e.target.value;setForm(f=>({...f,category:cat,isOneTime:cat==='식비'?true:f.isOneTime}));}} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:8,padding:'7px 8px',fontSize:15,background:'white'}}>
+<select value={form.category} onChange={e=>setForm(f=>({...f,category:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:8,padding:'7px 8px',fontSize:15,background:'white'}}>
 {(form.type==='income'?['수입','기타']:CAT_LIST).map(c=><option key={c} value={c}>{c}</option>)}
 </select>
 </div>
@@ -853,18 +807,29 @@ color:form.type===t?(t==='income'?'#15803d':'#dc2626'):'#6b7280'}}>
 <label htmlFor="oneTime" style={{fontSize:14,color:'#374151',fontWeight:600}}>{L.oneTime}</label>
 </div>
 </div>
-<div style={{display:'flex',gap:6}}>
-<button onClick={addTx} style={{flex:1,padding:'9px 0',background:theme.tabActive,color:'white',border:'none',borderRadius:10,fontWeight:700,fontSize:15}}>{L.add}</button>
-<button onClick={()=>setShowForm(false)} style={{padding:'9px 14px',background:'#e5e7eb',border:'none',borderRadius:10,fontSize:15}}>{L.cancel}</button>
+<button onClick={addTx} style={{width:'100%',padding:'11px 0',background:theme.btnGrad,color:'white',border:'none',borderRadius:10,fontWeight:800,fontSize:16,display:'flex',alignItems:'center',justifyContent:'center',gap:6,boxShadow:`0 3px 12px ${theme.tabActive}40`}}>
+<IcoPlus s={16}/>{L.add}
+</button>
+</div>
+{recentTx.length>0&&(
+<div style={{background:'white',borderRadius:12,padding:'10px 12px',marginBottom:12,boxShadow:'0 1px 3px rgba(0,0,0,0.05)'}}>
+<div style={{fontSize:12,color:'#9ca3af',fontWeight:700,marginBottom:7,letterSpacing:0.5}}>⚡ 최근 거래 빠른 추가</div>
+<div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+{recentTx.map((t,i)=>(
+<button key={i} onClick={()=>{setTx(p=>[...p,{...t,id:gid(),date:new Date().toISOString().slice(0,10),auto:false,isOneTime:true}]);adjBal(t.type==='income'?t.amount:-t.amount);}}
+style={{padding:'4px 10px',borderRadius:20,border:'1px solid #e5e7eb',background:'#f8fafc',fontSize:13,cursor:'pointer',color:'#374151',fontWeight:600,display:'flex',alignItems:'center',gap:4}}>
+<span style={{fontSize:11,background:t.type==='income'?'#dcfce7':'#fee2e2',color:t.type==='income'?'#15803d':'#dc2626',borderRadius:4,padding:'0 4px',fontWeight:700}}>{t.type==='income'?'+':'-'}</span>
+{t.name} <span style={{color:'#9ca3af',fontSize:12}}>{$$(t.amount)}</span>
+</button>
+))}
 </div>
 </div>
-}
-<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}} className="desktop-grid">
-<div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
+)}
+<div style={{background:'white',borderRadius:14,padding:16,boxShadow:'0 1px 3px rgba(0,0,0,0.06)',marginBottom:14}}>
 <div style={{display:'flex',alignItems:'center',marginBottom:10}}>
-<div style={{fontWeight:700,fontSize:15,color:'#1f2937',flex:1}}>{L.hist} ({filteredGrouped.reduce(function(s,g){return s+g[1].length;},0)}건)</div>
+<div style={{fontWeight:800,fontSize:16,color:'#1f2937',flex:1}}>{L.hist} <span style={{fontSize:14,color:'#9ca3af',fontWeight:400}}>({filteredGrouped.reduce(function(s,g){return s+g[1].length;},0)}건)</span></div>
 </div>
-<div style={{display:'flex',alignItems:'center',gap:6,border:'1px solid #e5e7eb',borderRadius:9,padding:'6px 10px',background:'#fafafa',marginBottom:10}}>
+<div style={{display:'flex',alignItems:'center',gap:6,border:'1px solid #e5e7eb',borderRadius:9,padding:'7px 12px',background:'#fafafa',marginBottom:10}}>
 <span style={{fontSize:14,color:'#9ca3af'}}>🔍</span>
 <input type="text" placeholder={L.srch} value={search} onChange={e=>setSrch(e.target.value)}
 style={{flex:1,border:'none',background:'none',fontSize:14,outline:'none',color:'#374151'}}/>
@@ -872,24 +837,24 @@ style={{flex:1,border:'none',background:'none',fontSize:14,outline:'none',color:
 </div>
 {search&&filteredGrouped.length===0&&<div style={{textAlign:'center',padding:'20px 0',color:'#9ca3af',fontSize:14}}>"{search}" 검색 결과 없음</div>}
 {!search&&filteredGrouped.length===0
-?<div style={{textAlign:'center',padding:'24px 0',color:'#9ca3af',fontSize:15}}>이달 거래 내역이 없습니다<br/>위 버튼으로 추가하세요</div>
-:<div style={{maxHeight:380,overflowY:'auto'}}>
+?<div style={{textAlign:'center',padding:'32px 0',color:'#9ca3af',fontSize:15}}>이달 거래 내역이 없습니다<br/>위 폼에서 추가하세요</div>
+:<div style={{maxHeight:520,overflowY:'auto'}}>
 {filteredGrouped.map(([date,txns])=>(
-<div key={date} style={{marginBottom:12}}>
-<div style={{fontSize:13,fontWeight:700,color:'#6b7280',marginBottom:4,paddingLeft:2}}>{date}</div>
+<div key={date} style={{marginBottom:14}}>
+<div style={{fontSize:13,fontWeight:700,color:'#6b7280',marginBottom:5,paddingLeft:2,borderBottom:'1px solid #f1f5f9',paddingBottom:4}}>{date}</div>
 {txns.map(t=>(
-<div key={t.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'7px 10px',borderRadius:10,
+<div key={t.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'9px 12px',borderRadius:10,
 background:t.auto?'#f0f9ff':t.type==='income'?'#f0fdf4':'#fef2f2',
-border:t.auto?'1px dashed #bfdbfe':'none',marginBottom:4}}>
-<div>
+border:t.auto?'1px dashed #bfdbfe':'1px solid transparent',marginBottom:5}}>
+<div style={{flex:1,minWidth:0}}>
 <span style={{fontSize:15,fontWeight:600,color:t.auto?'#374151':'#1f2937'}}>{t.name}</span>
-{t.type==='expense'&&t.category&&<span style={{marginLeft:6,fontSize:13,background:'rgba(255,255,255,0.7)',padding:'1px 6px',borderRadius:20,color:'#6b7280'}}>{t.category}</span>}
-{t.auto&&<span style={{marginLeft:4,fontSize:12,background:'#dbeafe',padding:'1px 6px',borderRadius:20,color:'#1d4ed8',fontWeight:700}}>🔁 자동</span>}
-{t.isOneTime&&<span style={{marginLeft:4,fontSize:12,background:'#fef3c7',padding:'1px 5px',borderRadius:20,color:'#92400e'}}>1회</span>}
+{t.type==='expense'&&t.category&&<span style={{marginLeft:6,fontSize:12,background:'rgba(255,255,255,0.8)',padding:'1px 7px',borderRadius:20,color:'#6b7280'}}>{t.category}</span>}
+{t.auto&&<span style={{marginLeft:4,fontSize:11,background:'#dbeafe',padding:'1px 6px',borderRadius:20,color:'#1d4ed8',fontWeight:700}}>🔁 자동</span>}
+{t.isOneTime&&<span style={{marginLeft:4,fontSize:11,background:'#fef3c7',padding:'1px 5px',borderRadius:20,color:'#92400e'}}>1회</span>}
 </div>
-<div style={{display:'flex',alignItems:'center',gap:6}}>
-<span style={{fontSize:15,fontWeight:800,color:t.type==='income'?'#15803d':'#dc2626'}}>{t.type==='income'?'+':'-'}{$$(t.amount)}</span>
-{!t.auto&&<button onClick={()=>delTx(t.id)} style={{background:'none',border:'none',color:'#fca5a5',padding:2,display:'flex'}}><IcoTrash s={12}/></button>}
+<div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
+<span style={{fontSize:16,fontWeight:800,color:t.type==='income'?'#15803d':'#dc2626'}}>{t.type==='income'?'+':'-'}{$$(t.amount)}</span>
+{!t.auto&&<button onClick={()=>delTx(t.id)} style={{background:'none',border:'none',color:'#fca5a5',padding:2,display:'flex'}}><IcoTrash s={13}/></button>}
 </div>
 </div>
 ))}
@@ -898,21 +863,19 @@ border:t.auto?'1px dashed #bfdbfe':'none',marginBottom:4}}>
 </div>
 }
 </div>
-<div style={{display:'flex',flexDirection:'column',gap:10}}>
+<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}} className="desktop-grid">
 <div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
 <div style={{fontWeight:700,fontSize:15,color:'#1f2937',marginBottom:6}}>🥧 카테고리별 지출</div>
 {catPie.length>0
-?<ResponsiveContainer width="100%" height={140}>
-<PieChart><Pie data={catPie} cx="50%" cy="50%" outerRadius={55} innerRadius={26} dataKey="value" nameKey="name">
+?<ResponsiveContainer width="100%" height={150}>
+<PieChart><Pie data={catPie} cx="50%" cy="50%" outerRadius={60} innerRadius={28} dataKey="value" nameKey="name">
 {catPie.map((e,i)=><Cell key={i} fill={e.fill}/>)}
 </Pie><Tooltip content={<PieTip/>}/><Legend wrapperStyle={{fontSize:12}}/></PieChart>
 </ResponsiveContainer>
 :<div style={{height:50,display:'flex',alignItems:'center',justifyContent:'center',color:'#9ca3af',fontSize:14}}>지출 거래 없음</div>
 }
-</div>
-<div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
-<div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
-<div style={{fontWeight:700,fontSize:15,color:'#1f2937'}}>🎯 카테고리 예산</div>
+<div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:10,marginBottom:8}}>
+<div style={{fontWeight:700,fontSize:14,color:'#1f2937'}}>🎯 카테고리 예산</div>
 <button onClick={()=>setShowBudget(p=>!p)}
 style={{fontSize:12,padding:'3px 10px',borderRadius:8,border:`1px solid ${theme.tabBorder}`,background:showBudget?theme.tabActive:'white',color:showBudget?'white':theme.tabActive,cursor:'pointer',fontWeight:700}}>
 {showBudget?'✓ 완료':'✏️ 설정'}
@@ -925,8 +888,8 @@ const pct=budget>0?Math.min(spent/budget*100,100):0;
 const over=budget>0&&spent>budget;
 if(!showBudget&&spent===0&&budget===0)return null;
 return(
-<div key={cat} style={{marginBottom:8}}>
-<div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:3}}>
+<div key={cat} style={{marginBottom:7}}>
+<div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:2}}>
 <span style={{fontSize:13,color:'#374151',fontWeight:600}}>{cat}</span>
 {showBudget?(
 <input type="number" value={budgets[cat]||''} onChange={e=>saveBudget(cat,e.target.value)}
@@ -940,8 +903,8 @@ style={{width:76,border:`1px solid ${theme.tabBorder}`,borderRadius:6,padding:'2
 )}
 </div>
 {budget>0&&(
-<div style={{height:5,background:'#f3f4f6',borderRadius:3,overflow:'hidden'}}>
-<div style={{height:5,width:`${pct}%`,background:over?'#ef4444':pct>75?'#f97316':'#22c55e',borderRadius:3,transition:'width .4s'}}/>
+<div style={{height:4,background:'#f3f4f6',borderRadius:3,overflow:'hidden'}}>
+<div style={{height:4,width:`${pct}%`,background:over?'#ef4444':pct>75?'#f97316':'#22c55e',borderRadius:3,transition:'width .4s'}}/>
 </div>
 )}
 </div>
@@ -951,7 +914,7 @@ style={{width:76,border:`1px solid ${theme.tabBorder}`,borderRadius:6,padding:'2
 </div>
 <div style={{background:'white',borderRadius:14,padding:14,boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
 <div style={{fontWeight:700,fontSize:15,color:'#1f2937',marginBottom:8}}>📊 최근 6개월 비교</div>
-<ResponsiveContainer width="100%" height={130}>
+<ResponsiveContainer width="100%" height={160}>
 <BarChart data={barData} margin={{top:2,right:4,left:-16,bottom:0}}>
 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6"/>
 <XAxis dataKey="month" tick={{fontSize:12,fill:'#9ca3af'}}/>
@@ -962,7 +925,6 @@ style={{width:76,border:`1px solid ${theme.tabBorder}`,borderRadius:6,padding:'2
 <Bar dataKey="expense" name="지출(고정포함)" fill="#f87171" radius={[3,3,0,0]}/>
 </BarChart>
 </ResponsiveContainer>
-</div>
 </div>
 </div>
 </div>
@@ -1729,7 +1691,7 @@ borderRadius:20,color:theme.accent,fontSize:15,fontWeight:700}}>
 <IcoUser s={13}/>{displayName.charAt(0).toUpperCase()+displayName.slice(1)}
 </div>
 {}
-{FB_READY&&syncStatus&&(
+{syncStatus&&(
 <span style={{fontSize:12,color:syncStatus==='saved'?'rgba(255,255,255,0.6)':syncStatus==='saving'?'rgba(255,255,255,0.4)':'#fca5a5',letterSpacing:0.5}}>
 {syncStatus==='saving'?L.syncSaving||'⏳':syncStatus==='saved'?L.syncSaved||'✓':'⚠️'}
 </span>
@@ -1906,8 +1868,7 @@ style={{width:'100%',border:'2px solid #e5e7eb',borderRadius:10,padding:'9px 11p
 {tab==='investments'&&<InvestmentTab investments={investments} setInv={setInv} cashAccounts={cashAccounts} setCashAccts={setCashAccts}/>}
 {tab==='projection'&&<ProjectionTab currentBalance={currentBalance} setCB={setCB} savingsGoal={savingsGoal} setSG={setSG} projMonths={projMonths} setPM={setPM} projData={projData.filter((_,i)=>i%Math.max(1,Math.floor(projMonths/20))===0)} milestones={milestones} totalInc={totalInc} totalExp={totalExp} totalDPay={totalDPay}/>}
 <div style={{textAlign:'center',fontSize:12,color:'#cbd5e1',marginTop:20,paddingBottom:20}}>
-Hilliard Buffshire Personal Finance Dashboard
-{FB_READY?' · ☁️ Firebase 동기화 활성화':' · 💾 로컬 저장 모드'}
+Hilliard Buffshire Personal Finance Dashboard · ☁️ Firebase 동기화 활성화
 </div>
 </div>
 {}
