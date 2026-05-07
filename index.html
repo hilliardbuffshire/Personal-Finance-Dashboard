@@ -12,6 +12,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js" crossorigin></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -110,43 +111,43 @@ const { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
 LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
 Legend, ResponsiveContainer } = Recharts;
 const FIREBASE_CONFIG = {
-apiKey:            "AIzaSyCsVCn2AhfVPRr6Qwubq_uOhSZhaXtCnkI",
-authDomain:        "hilliard-buffshire-finance.firebaseapp.com",
-projectId:         "hilliard-buffshire-finance",
-storageBucket:     "hilliard-buffshire-finance.firebasestorage.app",
-messagingSenderId: "970572667532",
-appId:             "1:970572667532:web:1a47584858e9e71f85f9a9"
+apiKey:            "AIzaSyDEPq3SqOCiltpmesT3vP9Jp7a_ujFou1k",
+authDomain:        "daily-task-planner-9187f.firebaseapp.com",
+projectId:         "daily-task-planner-9187f",
+storageBucket:     "daily-task-planner-9187f.firebasestorage.app",
+messagingSenderId: "309757618979",
+appId:             "1:309757618979:web:79fbdc11fbfbcdffa9ba96"
 };
-const FB_READY = FIREBASE_CONFIG.apiKey !== "REPLACE_WITH_YOUR_API_KEY";
-let db = null;
-if (FB_READY) {
+const AUTH_DOMAIN = "@hilliard.buffshire.internal";
+const FB_READY = true;
+let db = null, fbAuth = null;
 try {
 const fbApp = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(FIREBASE_CONFIG);
 db = firebase.firestore();
+fbAuth = firebase.auth();
 } catch(e) { console.error('Firebase init error:', e); }
-}
-const hashPw = async (pw) => {
-const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw + 'hb_salt_2026'));
-return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
-};
 const FSAuth = {
 register: async (un, pw) => {
-if (!db) return { ok:false, msg:'Firebase 미설정 — FIREBASE_CONFIG를 수정하세요.' };
-const ref = db.collection('users').doc(un);
-const snap = await ref.get();
-if (snap.exists) return { ok:false, msg:'이미 사용 중인 아이디입니다.' };
-const hash = await hashPw(pw);
-await ref.set({ passwordHash:hash, createdAt:new Date().toISOString() }, { merge:true });
+if (!fbAuth) return { ok:false, msg:'파이어베이스 초기화 실패.' };
+try {
+await fbAuth.createUserWithEmailAndPassword(un.toLowerCase().trim() + AUTH_DOMAIN, pw);
 return { ok:true };
+} catch(e) {
+if(e.code==='auth/email-already-in-use') return { ok:false, msg:'이미 사용 중인 아이디입니다.' };
+if(e.code==='auth/weak-password') return { ok:false, msg:'비밀번호가 너무 약합니다. (6자 이상)' };
+return { ok:false, msg:`오류: ${e.message}` };
+}
 },
 login: async (un, pw) => {
-if (!db) return { ok:false, msg:'Firebase 미설정 — FIREBASE_CONFIG를 수정하세요.' };
-const ref = db.collection('users').doc(un);
-const snap = await ref.get();
-if (!snap.exists) return { ok:false, msg:'존재하지 않는 아이디입니다.' };
-const hash = await hashPw(pw);
-if (snap.data().passwordHash !== hash) return { ok:false, msg:'비밀번호가 틀렸습니다.' };
+if (!fbAuth) return { ok:false, msg:'파이어베이스 초기화 실패.' };
+try {
+await fbAuth.signInWithEmailAndPassword(un.toLowerCase().trim() + AUTH_DOMAIN, pw);
 return { ok:true };
+} catch(e) {
+if(e.code==='auth/user-not-found'||e.code==='auth/invalid-credential') return { ok:false, msg:'존재하지 않는 아이디입니다.' };
+if(e.code==='auth/wrong-password') return { ok:false, msg:'비밀번호가 틀렸습니다.' };
+return { ok:false, msg:`로그인 실패: ${e.message}` };
+}
 },
 };
 const LocalAuth = {
@@ -322,20 +323,18 @@ setLoading(true);setErr('');
 const un=username.trim().toLowerCase();
 try{
 let result;
-if(db){
+if(fbAuth){
 result = tab==='login' ? await FSAuth.login(un,pw) : await FSAuth.register(un,pw);
 } else {
 result = tab==='login' ? LocalAuth.login(un,pw) : LocalAuth.register(un,pw);
 }
+if(fbAuth){
 if(!result.ok){setErr(result.msg);return;}
-LS.set('hb_session', un);
-onLogin(un);
-}catch(e){
-if(e.code==='permission-denied'||e.message?.includes('Missing or insufficient permissions')){
-setErr('Firestore 권한 오류: Firebase 콘솔 → Firestore Database → Rules 탭에서 테스트 모드로 설정해주세요.');
 } else {
-setErr(`오류: ${e.message||e.code||'알 수 없는 오류'}`);
+if(!result.ok){setErr(result.msg);return;}
+onLogin(un);
 }
+}catch(e){
 }finally{
 setLoading(false);
 }
@@ -1495,7 +1494,7 @@ const saveEnabled = useRef(false);
 const saveTimer = useRef(null);
 useEffect(()=>{
 if(!db||!user){ saveEnabled.current=true; return; }
-db.collection('users').doc(user).get()
+db.collection('hb_finance').doc(user).get()
 .then(doc=>{
 if(doc.exists){
 const d=doc.data();
@@ -1530,7 +1529,7 @@ if(!db||!user) return;
 setSyncStatus('saving');
 if(saveTimer.current) clearTimeout(saveTimer.current);
 saveTimer.current=setTimeout(()=>{
-db.collection('users').doc(user).set({
+db.collection('hb_finance').doc(user).set({
 balance:currentBalance, goal:savingsGoal, months:projMonths,
 incomes, expenses, debts, investments, transactions, cashAccounts,
 updatedAt: new Date().toISOString()
@@ -1936,7 +1935,8 @@ return this.props.children;
 }
 }
 function App(){
-const [user,setUser]=useState(()=>LS.get('hb_session',null));
+const [user,setUser]=useState(null);
+const [authReady,setAuthReady]=useState(!fbAuth);
 const [themeIdx,setThemeIdx]=useState(()=>{
 const t=LS.get('hb_theme',0);
 return(typeof t==='number'&&t>=0&&t<THEMES.length)?t:0;
@@ -1945,8 +1945,18 @@ const saveTheme=(idx)=>{ setThemeIdx(idx); LS.set('hb_theme',idx); };
 const [lang,setLang]=useState(()=>LS.get('hb_lang','kr'));
 const saveLang=(l)=>{ setLang(l); LS.set('hb_lang',l); };
 const theme=THEMES[themeIdx];
+useEffect(()=>{
+if(!fbAuth){return;}
+const unsub=fbAuth.onAuthStateChanged(u=>{
+if(u){setUser(u.email.replace(AUTH_DOMAIN,''));}
+else{setUser(null);}
+setAuthReady(true);
+});
+return()=>unsub();
+},[]);
+if(!authReady)return null;
 if(!user) return <AuthScreen onLogin={(un)=>setUser(un)} theme={theme} lang={lang}/>;
-return <Dashboard user={user} onLogout={()=>{ LS.del('hb_session'); setUser(null); }}
+return <Dashboard user={user} onLogout={()=>{if(fbAuth)fbAuth.signOut();else{LS.del('hb_session');setUser(null);}}}
 theme={theme} themeIdx={themeIdx} setThemeIdx={saveTheme} lang={lang} setLang={saveLang}/>;
 }
 document.getElementById('loading').style.display='none';
