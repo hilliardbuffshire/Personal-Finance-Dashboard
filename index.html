@@ -625,6 +625,7 @@ const [editTxVals,setEditTxVals]=useState({});
 const [showBudget,setShowBudget]=useState(false);
 const [viewMode,setViewMode]=useState('list'); // 'list' | 'calendar'
 const [showAnnual,setShowAnnual]=useState(false);
+const [expandedDay,setExpandedDay]=useState(null);
 const [budgets,setBudgets]=useState(()=>{try{return JSON.parse(localStorage.getItem('hb_cat_budgets')||'{}')}catch(e){return{}}});
 const saveBudget=(cat,v)=>{const nb={...budgets,[cat]:parseFloat(v)||0};setBudgets(nb);localStorage.setItem('hb_cat_budgets',JSON.stringify(nb));};
 const autoEntries=useMemo(()=>
@@ -923,20 +924,57 @@ return(<div>
 <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:3}}>
 {cells.map((d,i)=>{
 if(!d)return<div key={i}/>;
+const dateStr=mth+'-'+String(d).padStart(2,'0');
 const dayTxs=txByDay[d]||[];
 const inc=dayTxs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
 const exp=dayTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
 const isToday=cy===today.getFullYear()&&cm-1===today.getMonth()&&d===today.getDate();
-return(<div key={i} onClick={()=>{if(dayTxs.length)setSrch(mth+'-'+String(d).padStart(2,'0'));}}
-style={{minHeight:64,background:isToday?`${theme.tabActive}15`:'#fafafa',borderRadius:6,border:isToday?`1.5px solid ${theme.tabActive}`:'1px solid #f1f5f9',padding:'4px 6px',cursor:dayTxs.length?'pointer':'default'}}>
-<div style={{fontSize:15,fontWeight:700,color:isToday?theme.tabActive:'#374151',marginBottom:2}}>{d}</div>
+const isSelected=expandedDay===dateStr;
+return(<div key={i} onClick={()=>setExpandedDay(isSelected?null:dateStr)}
+style={{minHeight:64,background:isSelected?`${theme.tabActive}20`:isToday?`${theme.tabActive}10`:'#fafafa',
+borderRadius:6,border:isSelected?`2px solid ${theme.tabActive}`:isToday?`1.5px solid ${theme.tabActive}`:'1px solid #f1f5f9',
+padding:'4px 6px',cursor:'pointer',transition:'all .15s'}}>
+<div style={{fontSize:15,fontWeight:700,color:isSelected||isToday?theme.tabActive:'#374151',marginBottom:2}}>{d}</div>
 {exp>0&&<div style={{fontSize:12,color:'#dc2626',fontWeight:600,lineHeight:1.3}}>-{$$(exp)}</div>}
 {inc>0&&<div style={{fontSize:12,color:'#16a34a',fontWeight:600,lineHeight:1.3}}>+{$$(inc)}</div>}
-{dayTxs.length>0&&<div style={{display:'flex',gap:1,marginTop:1}}>{dayTxs.slice(0,3).map((t,j)=><span key={j} style={{width:5,height:5,borderRadius:'50%',background:t.type==='income'?'#22c55e':'#ef4444',display:'inline-block'}}/>)}</div>}
+{dayTxs.length>0&&<div style={{display:'flex',gap:1,marginTop:2}}>{dayTxs.slice(0,4).map((t,j)=><span key={j} style={{width:6,height:6,borderRadius:'50%',background:t.type==='income'?'#22c55e':'#ef4444',display:'inline-block'}}/>)}</div>}
 </div>);
 })}
 </div>
-{search&&<div style={{marginTop:8,fontSize:12,color:'#6b7280'}}>날짜 필터 활성 — 검색창 X를 눌러 해제</div>}
+{expandedDay&&(()=>{
+const dayTxs=allFiltered.filter(t=>t.date===expandedDay);
+const dayInc=dayTxs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+const dayExp=dayTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+return(
+<div style={{marginTop:10,background:'white',borderRadius:10,padding:'12px 14px',border:`1.5px solid ${theme.tabBorder}`,boxShadow:'0 2px 8px rgba(0,0,0,0.07)'}}>
+<div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+<span style={{fontWeight:800,fontSize:14,color:theme.tabActive}}>📅 {expandedDay}</span>
+<div style={{display:'flex',gap:10,fontSize:13}}>
+{dayInc>0&&<span style={{color:'#16a34a',fontWeight:700}}>+{$$(dayInc)}</span>}
+{dayExp>0&&<span style={{color:'#dc2626',fontWeight:700}}>-{$$(dayExp)}</span>}
+<button onClick={()=>setExpandedDay(null)} style={{background:'none',border:'none',color:'#9ca3af',cursor:'pointer',fontSize:14,padding:0}}>✕</button>
+</div>
+</div>
+{dayTxs.length===0
+?<div style={{color:'#9ca3af',fontSize:13,textAlign:'center',padding:'8px 0'}}>이날 거래 없음</div>
+:dayTxs.map((t,i)=>(
+<div key={t.id||i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',
+padding:'7px 0',borderBottom:i<dayTxs.length-1?'1px solid #f1f5f9':'none'}}>
+<div style={{flex:1,minWidth:0}}>
+<div style={{display:'flex',alignItems:'center',gap:4,flexWrap:'wrap'}}>
+<span style={{fontSize:14,fontWeight:600,color:'#1f2937'}}>{t.name}</span>
+{t.category&&<span style={{fontSize:11,color:'#9ca3af',background:'#f1f5f9',padding:'1px 6px',borderRadius:10}}>{t.category}</span>}
+{t.auto&&<span style={{fontSize:11,color:'#1d4ed8',background:'#dbeafe',padding:'1px 5px',borderRadius:10,fontWeight:700}}>자동</span>}
+</div>
+{t.memo&&<div style={{fontSize:12,color:'#9ca3af',marginTop:1}}>📝 {t.memo}</div>}
+</div>
+<span style={{fontSize:15,fontWeight:800,color:t.type==='income'?'#16a34a':'#dc2626',flexShrink:0,marginLeft:8}}>
+{t.type==='income'?'+':'-'}{$$(t.amount)}
+</span>
+</div>
+))}
+</div>);
+})()}
 </div>);
 })()}
 {viewMode!=='calendar'&&!search&&filteredGrouped.length===0&&(
