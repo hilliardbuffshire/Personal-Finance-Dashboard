@@ -619,6 +619,8 @@ function LedgerTab({transactions,setTx,expenses,theme,currentBalance,setCB,cashA
 const [mth,setMth]=useState(monthKey());
 const [form,setForm]=useState({date:new Date().toISOString().slice(0,10),name:'',amount:'',type:'expense',category:'식비',isOneTime:true});
 const [search,setSrch]=useState('');
+const [editTxId,setEditTxId]=useState(null);
+const [editTxVals,setEditTxVals]=useState({});
 const [showBudget,setShowBudget]=useState(false);
 const [budgets,setBudgets]=useState(()=>{try{return JSON.parse(localStorage.getItem('hb_cat_budgets')||'{}')}catch(e){return{}}});
 const saveBudget=(cat,v)=>{const nb={...budgets,[cat]:parseFloat(v)||0};setBudgets(nb);localStorage.setItem('hb_cat_budgets',JSON.stringify(nb));};
@@ -681,6 +683,14 @@ const delTx=(id)=>{
 const tx=transactions.find(t=>t.id===id);
 if(tx&&!tx.auto) adjBal(tx.type==='income'?-tx.amount:tx.amount);
 setTx(p=>p.filter(t=>t.id!==id));
+};
+const updateTx=(id)=>{
+const orig=transactions.find(t=>t.id===id);
+if(!orig)return;
+const newAmt=parseFloat(editTxVals.amount)||0;
+adjBal((orig.type==='income'?-orig.amount:orig.amount)+(editTxVals.type==='income'?newAmt:-newAmt));
+setTx(p=>p.map(t=>t.id===id?{...t,...editTxVals,amount:newAmt}:t));
+setEditTxId(null);
 };
 const recentTx=useMemo(()=>{const seen=new Set();return[...transactions].reverse().filter(t=>!t.auto&&!seen.has(t.name)&&seen.add(t.name)).slice(0,5);},[transactions]);
 const grouped=useMemo(()=>{
@@ -843,7 +853,47 @@ style={{flex:1,border:'none',background:'none',fontSize:14,outline:'none',color:
 <div key={date} style={{marginBottom:14}}>
 <div style={{fontSize:13,fontWeight:700,color:'#6b7280',marginBottom:5,paddingLeft:2,borderBottom:'1px solid #f1f5f9',paddingBottom:4}}>{date}</div>
 {txns.map(t=>(
-<div key={t.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'9px 12px',borderRadius:10,
+editTxId===t.id
+?<div key={t.id} style={{padding:'10px 12px',borderRadius:10,background:'#fefce8',border:'2px solid #fbbf24',marginBottom:5}}>
+<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginBottom:8}}>
+<div>
+<div style={{fontSize:12,color:'#6b7280',marginBottom:2}}>내용</div>
+<input type="text" value={editTxVals.name} onChange={e=>setEditTxVals(p=>({...p,name:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:7,padding:'5px 8px',fontSize:14}}/>
+</div>
+<div>
+<div style={{fontSize:12,color:'#6b7280',marginBottom:2}}>금액 ($)</div>
+<input type="number" value={editTxVals.amount} onChange={e=>setEditTxVals(p=>({...p,amount:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:7,padding:'5px 8px',fontSize:14}}/>
+</div>
+<div>
+<div style={{fontSize:12,color:'#6b7280',marginBottom:2}}>유형</div>
+<div style={{display:'flex',gap:4}}>
+{['expense','income'].map(tp=>(
+<button key={tp} onClick={()=>setEditTxVals(p=>({...p,type:tp}))}
+style={{flex:1,padding:'5px 0',borderRadius:6,border:'none',fontSize:13,fontWeight:700,
+background:editTxVals.type===tp?(tp==='income'?'#dcfce7':'#fee2e2'):'#f1f5f9',
+color:editTxVals.type===tp?(tp==='income'?'#15803d':'#dc2626'):'#6b7280'}}>
+{tp==='income'?'💰 수입':'💸 지출'}
+</button>
+))}
+</div>
+</div>
+<div>
+<div style={{fontSize:12,color:'#6b7280',marginBottom:2}}>날짜</div>
+<input type="date" value={editTxVals.date} onChange={e=>setEditTxVals(p=>({...p,date:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:7,padding:'5px 8px',fontSize:14}}/>
+</div>
+<div>
+<div style={{fontSize:12,color:'#6b7280',marginBottom:2}}>카테고리</div>
+<select value={editTxVals.category} onChange={e=>setEditTxVals(p=>({...p,category:e.target.value}))} style={{width:'100%',border:'1px solid #d1d5db',borderRadius:7,padding:'5px 8px',fontSize:14,background:'white'}}>
+{(editTxVals.type==='income'?['수입','기타']:CAT_LIST).map(c=><option key={c} value={c}>{c}</option>)}
+</select>
+</div>
+</div>
+<div style={{display:'flex',gap:6}}>
+<button onClick={()=>updateTx(t.id)} style={{display:'flex',alignItems:'center',gap:4,padding:'5px 14px',background:'#22c55e',color:'white',border:'none',borderRadius:8,fontSize:14,fontWeight:700}}><IcoCheck/>저장</button>
+<button onClick={()=>setEditTxId(null)} style={{padding:'5px 10px',background:'#e5e7eb',border:'none',borderRadius:8,fontSize:14}}>취소</button>
+</div>
+</div>
+:<div key={t.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'9px 12px',borderRadius:10,
 background:t.auto?'#f0f9ff':t.type==='income'?'#f0fdf4':'#fef2f2',
 border:t.auto?'1px dashed #bfdbfe':'1px solid transparent',marginBottom:5}}>
 <div style={{flex:1,minWidth:0}}>
@@ -852,8 +902,9 @@ border:t.auto?'1px dashed #bfdbfe':'1px solid transparent',marginBottom:5}}>
 {t.auto&&<span style={{marginLeft:4,fontSize:11,background:'#dbeafe',padding:'1px 6px',borderRadius:20,color:'#1d4ed8',fontWeight:700}}>🔁 자동</span>}
 {t.isOneTime&&<span style={{marginLeft:4,fontSize:11,background:'#fef3c7',padding:'1px 5px',borderRadius:20,color:'#92400e'}}>1회</span>}
 </div>
-<div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
+<div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
 <span style={{fontSize:16,fontWeight:800,color:t.type==='income'?'#15803d':'#dc2626'}}>{t.type==='income'?'+':'-'}{$$(t.amount)}</span>
+{!t.auto&&<button onClick={()=>{setEditTxId(t.id);setEditTxVals({name:t.name,amount:t.amount,type:t.type,date:t.date,category:t.category||'기타'});}} style={{background:'none',border:'none',color:'#93c5fd',padding:2,display:'flex'}}><IcoEdit s={13}/></button>}
 {!t.auto&&<button onClick={()=>delTx(t.id)} style={{background:'none',border:'none',color:'#fca5a5',padding:2,display:'flex'}}><IcoTrash s={13}/></button>}
 </div>
 </div>
