@@ -918,7 +918,7 @@ const WD=['일','월','화','수','목','금','토'];
 const today=new Date();
 return(<div>
 <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2,marginBottom:4}}>
-{WD.map(w=><div key={w} style={{textAlign:'center',fontSize:11,fontWeight:700,color:'#9ca3af',padding:'4px 0'}}>{w}</div>)}
+{WD.map(w=><div key={w} style={{textAlign:'center',fontSize:13,fontWeight:700,color:'#9ca3af',padding:'5px 0'}}>{w}</div>)}
 </div>
 <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:3}}>
 {cells.map((d,i)=>{
@@ -928,10 +928,10 @@ const inc=dayTxs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
 const exp=dayTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
 const isToday=cy===today.getFullYear()&&cm-1===today.getMonth()&&d===today.getDate();
 return(<div key={i} onClick={()=>{if(dayTxs.length)setSrch(mth+'-'+String(d).padStart(2,'0'));}}
-style={{minHeight:52,background:isToday?`${theme.tabActive}15`:'#fafafa',borderRadius:6,border:isToday?`1.5px solid ${theme.tabActive}`:'1px solid #f1f5f9',padding:'3px 4px',cursor:dayTxs.length?'pointer':'default'}}>
-<div style={{fontSize:12,fontWeight:700,color:isToday?theme.tabActive:'#374151',marginBottom:2}}>{d}</div>
-{exp>0&&<div style={{fontSize:10,color:'#dc2626',fontWeight:600,lineHeight:1.2}}>-{$$(exp)}</div>}
-{inc>0&&<div style={{fontSize:10,color:'#16a34a',fontWeight:600,lineHeight:1.2}}>+{$$(inc)}</div>}
+style={{minHeight:64,background:isToday?`${theme.tabActive}15`:'#fafafa',borderRadius:6,border:isToday?`1.5px solid ${theme.tabActive}`:'1px solid #f1f5f9',padding:'4px 6px',cursor:dayTxs.length?'pointer':'default'}}>
+<div style={{fontSize:15,fontWeight:700,color:isToday?theme.tabActive:'#374151',marginBottom:2}}>{d}</div>
+{exp>0&&<div style={{fontSize:12,color:'#dc2626',fontWeight:600,lineHeight:1.3}}>-{$$(exp)}</div>}
+{inc>0&&<div style={{fontSize:12,color:'#16a34a',fontWeight:600,lineHeight:1.3}}>+{$$(inc)}</div>}
 {dayTxs.length>0&&<div style={{display:'flex',gap:1,marginTop:1}}>{dayTxs.slice(0,3).map((t,j)=><span key={j} style={{width:5,height:5,borderRadius:'50%',background:t.type==='income'?'#22c55e':'#ef4444',display:'inline-block'}}/>)}</div>}
 </div>);
 })}
