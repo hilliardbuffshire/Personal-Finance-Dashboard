@@ -239,14 +239,14 @@ if(ed)return(
 const amt=item.amount??item.monthlyPayment??0;
 return(
 <div className={`flex items-center justify-between px-3 py-2 rounded-xl mb-1.5 ${bg}`}>
-<div style={{flex:1,minWidth:0}}>
+<div style={{flex:1,minWidth:0,display:'flex',flexWrap:'wrap',alignItems:'center',gap:4}}>
 <span style={{fontSize:15,fontWeight:600,color:'#1f2937'}}>{item.name}</span>
-{item.category&&<span style={{marginLeft:6,fontSize:13,background:'rgba(255,255,255,0.7)',padding:'2px 7px',borderRadius:20,color:'#6b7280'}}>{item.category}</span>}
-{item.type&&item.type!=='monthly'&&item.type!=='stock'&&item.type!=='crypto'&&item.type!=='realEstate'&&item.type!=='savings'&&item.type!=='other'&&<span style={{marginLeft:6,fontSize:13,background:'#fef3c7',padding:'2px 7px',borderRadius:20,color:'#92400e'}}>1회성</span>}
-{item.interestRate!=null&&<span style={{marginLeft:6,fontSize:13,color:'#ef4444',fontWeight:600}}>{item.interestRate}%</span>}
-{item.expectedReturn!=null&&<span style={{marginLeft:6,fontSize:13,color:'#3b82f6',fontWeight:600}}>+{item.expectedReturn}%/yr</span>}
-{item.schedType&&item.schedType!=='none'&&(()=>{const WD=['일','월','화','수','목','금','토'];const wd=parseInt(item.schedWeekday||5);const d=item.day>0?item.day:(item.schedDay>0?item.schedDay:0);const tag=item.schedType==='monthly'?(d>0?`📅 ${d}일`:'📅 매월'):item.schedType==='biweekly'?`📅 격주 ${WD[wd]}`:item.schedType==='weekly'?`📅 매주 ${WD[wd]}`:'';return tag?<span style={{marginLeft:6,fontSize:12,background:'#dbeafe',padding:'2px 7px',borderRadius:20,color:'#1d4ed8',fontWeight:700}}>{tag}</span>:null;})()}
-{item.dueDay&&item.dueDay>0&&<span style={{marginLeft:6,fontSize:12,background:'#fef3c7',padding:'2px 7px',borderRadius:20,color:'#92400e',fontWeight:700}}>📅 {item.dueDay}일</span>}
+{item.category&&<span style={{fontSize:13,background:'rgba(255,255,255,0.7)',padding:'2px 7px',borderRadius:20,color:'#6b7280',whiteSpace:'nowrap'}}>{item.category}</span>}
+{item.type&&item.type!=='monthly'&&item.type!=='stock'&&item.type!=='crypto'&&item.type!=='realEstate'&&item.type!=='savings'&&item.type!=='other'&&<span style={{fontSize:13,background:'#fef3c7',padding:'2px 7px',borderRadius:20,color:'#92400e',whiteSpace:'nowrap'}}>1회성</span>}
+{item.interestRate!=null&&<span style={{fontSize:13,color:'#ef4444',fontWeight:600,whiteSpace:'nowrap'}}>{item.interestRate}%</span>}
+{item.expectedReturn!=null&&<span style={{fontSize:13,color:'#3b82f6',fontWeight:600,whiteSpace:'nowrap'}}>+{item.expectedReturn}%/yr</span>}
+{item.schedType&&item.schedType!=='none'&&(()=>{const WD=['일','월','화','수','목','금','토'];const wd=parseInt(item.schedWeekday);const noWd=!item.schedWeekday||item.schedWeekday==='none';const d=item.day>0?item.day:(item.schedDay>0?item.schedDay:0);const tag=item.schedType==='monthly'?(d>0?`📅 ${d}일`:'📅 매월'):item.schedType==='biweekly'?(noWd?'📅 격주':`📅 격주 ${WD[wd]}`):item.schedType==='weekly'?(noWd?'📅 매주':`📅 매주 ${WD[wd]}`):'';return tag?<span style={{fontSize:12,background:'#dbeafe',padding:'2px 7px',borderRadius:20,color:'#1d4ed8',fontWeight:700,whiteSpace:'nowrap'}}>{tag}</span>:null;})()}
+{item.dueDay&&item.dueDay>0&&<span style={{fontSize:12,background:'#fef3c7',padding:'2px 7px',borderRadius:20,color:'#92400e',fontWeight:700,whiteSpace:'nowrap'}}>📅 {item.dueDay}일</span>}
 </div>
 <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0,marginLeft:6}}>
 {item.totalAmount!=null&&<span style={{fontSize:13,color:'#9ca3af'}}>잔액 {$$(item.totalAmount)}</span>}
@@ -443,8 +443,8 @@ const updGoal=(id,field,val)=>setSavingsGoals(p=>p.map(g=>g.id===id?{...g,[field
 const upd=s=>(id,v)=>s(p=>p.map(x=>x.id===id?{...x,...v}:x));
 const del=s=>(id)=>s(p=>p.filter(x=>x.id!==id));
 const add=s=>item=>s(p=>[...p,item]);
-const WD_OPTS=['0','1','2','3','4','5','6'];
-const WD_LABELS={'0':L.sun,'1':L.mon,'2':L.tue,'3':L.wed,'4':L.thu,'5':L.fri,'6':L.sat};
+const WD_OPTS=['none','0','1','2','3','4','5','6'];
+const WD_LABELS={none:L.schedNone,'0':L.sun,'1':L.mon,'2':L.tue,'3':L.wed,'4':L.thu,'5':L.fri,'6':L.sat};
 const FI=[
 {key:'name',label:L.incName,ph:'예: 월급'},
 {key:'amount',label:L.incAmt,type:'number',def:0},
