@@ -213,6 +213,7 @@ function EditRow({item,fields,onSave,onDelete,bg='bg-gray-50'}){
 const [ed,setEd]=useState(false);
 const mk=()=>Object.fromEntries(fields.map(f=>[f.key,item[f.key]]));
 const [v,setV]=useState(mk);
+useEffect(()=>{ if(!ed) setV(Object.fromEntries(fields.map(f=>[f.key,item[f.key]]))); },[item]);
 const save=()=>{onSave(item.id,v);setEd(false);};
 const cancel=()=>{setV(mk());setEd(false);};
 const set=(k,val)=>setV(p=>({...p,[k]:val}));
@@ -1993,10 +1994,15 @@ const saveTimer = useRef(null);
 const pendingSave = useRef(null);
 useEffect(()=>{
 if(!db||!user){ saveEnabled.current=true; return; }
+const lsTime=LS.get(CK('lsUpdatedAt'),0);
+let lsNewer=false;
 db.collection('hb_finance').doc(user).get()
 .then(doc=>{
 if(doc.exists){
 const d=doc.data();
+const fsTime=d.updatedAt?new Date(d.updatedAt).getTime():0;
+lsNewer=lsTime>fsTime;
+if(!lsNewer){
 if(d.balance!=null) setCB(d.balance);
 if(d.goal!=null) setSG(d.goal);
 if(d.months!=null) setPM(d.months);
@@ -2011,14 +2017,30 @@ if(d.catBudgets) setCatBudgets(d.catBudgets);
 if(d.savingsGoals) setSavingsGoals(d.savingsGoals);
 if(d.nwHistory) setNwHistory(d.nwHistory);
 }
+}
 })
 .catch(e=>console.warn('Firestore load:', e))
 .finally(()=>{
-setTimeout(()=>{ saveEnabled.current=true; }, 1000);
+setTimeout(()=>{
+saveEnabled.current=true;
+if(lsNewer&&db&&user){
+const sd={
+balance:LS.get(CK('balance'),0),goal:LS.get(CK('goal'),50000),months:LS.get(CK('months'),60),
+incomes:LS.get(CK('incomes'),DEF_INC),expenses:LS.get(CK('expenses'),DEF_EXP),
+debts:LS.get(CK('debts'),DEF_DBT),investments:LS.get(CK('investments'),DEF_INV),
+transactions:LS.get(CK('transactions'),DEF_TXN),cashAccounts:LS.get(CK('cashAccounts'),[]),
+favorites:LS.get(CK('favorites'),[]),catBudgets:LS.get(CK('catBudgets'),{}),
+savingsGoals:LS.get(CK('savingsGoals'),[]),nwHistory:LS.get(CK('nwHistory'),[]),
+updatedAt:new Date().toISOString()
+};
+db.collection('hb_finance').doc(user).set(sd).catch(e=>console.warn('Force FS sync:',e));
+}
+},1000);
 });
 },[user]);
 useEffect(()=>{
 if(!saveEnabled.current) return;
+LS.set(CK('lsUpdatedAt'),Date.now());
 LS.set(CK('balance'),currentBalance);
 LS.set(CK('goal'),savingsGoal);
 LS.set(CK('months'),projMonths);
